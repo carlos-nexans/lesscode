@@ -83,9 +83,9 @@ export default function Layout({
   return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <Header />
-      <div className="flex flex-col sm:pl-14">
+      <div className="flex flex-col sm:pl-14 flex-grow">
         <Sidebar />
-          <main className="flex-1 items-start">
+          <main className="flex flex-col flex-grow h-full w-full">
             {children}
           </main>
         </div>

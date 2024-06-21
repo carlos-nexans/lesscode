@@ -12,7 +12,7 @@ import {Input} from "@/components/ui/input";
 export type ContentTopProps = {
     routes: {
         name: string
-        href: string
+        href?: string
     }[]
 }
 
@@ -25,11 +25,12 @@ export default function ContentTop(props: ContentTopProps) {
                     {props.routes.map((route, index) => (
                         <>
                             <BreadcrumbItem>
-                                <BreadcrumbLink asChild>
+                                {route.href && <BreadcrumbLink asChild>
                                     <Link href={route.href} prefetch={false}>
                                         {route.name}
                                     </Link>
-                                </BreadcrumbLink>
+                                </BreadcrumbLink>}
+                                {!route.href && route.name}
                             </BreadcrumbItem>
                             {index < props.routes.length - 1 && <BreadcrumbSeparator/>}
                         </>
