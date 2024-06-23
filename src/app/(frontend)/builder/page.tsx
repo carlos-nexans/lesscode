@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useRef, useState} from 'react';
 import ReactFlow, {
     addEdge,
     Background,
@@ -24,6 +24,8 @@ import {
     CommandList,
     CommandSeparator,
 } from "@/components/ui/command"
+import {cn} from "@/lib/utils";
+import {NodeEditor, useEditingNode} from "@/components/builder/NodeEditor";
 
 
 export type FunctionNodeProps = {
@@ -35,30 +37,21 @@ export type FunctionNodeProps = {
 const selector = (s) => ({
     nodeInternals: s.nodeInternals,
     edges: s.edges,
-    getNodes: s.getNodes,
-    setNodes: s.setNodes,
-    setEdges: s.setEdges,
 });
 
 function FunctionNode(props: NodeProps<FunctionNodeProps>) {
     const {nodeInternals, edges} = useStore(selector);
-    const {getNodes, setEdges, setNodes} = useReactFlow();
-    const nodes = getNodes();
-
     const nodeId = useNodeId();
     const node = nodeInternals.get(nodeId);
-    const connectedEdges = getConnectedEdges([node], edges);
+    const {setEditingNode} = useEditingNode();
 
+    const connectedEdges = getConnectedEdges([node], edges);
     const sourceEdges = connectedEdges.filter((e) => e.source === nodeId).length;
     const targetEdges = connectedEdges.filter((e) => e.target === nodeId).length;
 
-    const onDelete = useCallback(
-        () => {
-            setNodes((nds) => nds.filter((n) => n.id !== nodeId));
-            setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
-        },
-        [nodes, edges]
-    );
+    const onEdit = useCallback(() => {
+        setEditingNode(node);
+    }, [node, setEditingNode])
 
     return (
         <>
@@ -69,12 +62,11 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
                         {props.data.name}
                     </CardTitle>
                 </CardHeader>
-                <CardFooter className={"flex flex-row justify-end space-x-2"}>
-                    <Button variant="destructive" onClick={onDelete}><Trash2 className={"w-5 h-5"}/></Button>
-                    <Button className={"flex flex-row space-x-2"}><FileCode2 className={"w-5 h-5"}/>
-                        <div>Editar</div>
-                    </Button>
-                </CardFooter>
+                    <CardFooter className={"flex flex-row justify-start space-x-2"}>
+                        <Button onClick={onEdit} size="sm" className={"flex flex-row space-x-2"}><FileCode2 className={"w-5 h-5"}/>
+                            <div>Editar</div>
+                        </Button>
+                    </CardFooter>
             </Card>
             <Handle
                 type="source"
@@ -215,8 +207,7 @@ export function EdgeContextMenu({
                                 }) {
     const {setEdges, getEdges} = useReactFlow();
 
-    const disconnectEdge = useCallback(() => {
-        console.log("Disconnecting edge", edge);
+    const onDisconnect = useCallback(() => {
         const edges = getEdges()
         const newEdges = edges.filter((e) => e.id !== edge.id);
         setEdges(newEdges);
@@ -232,7 +223,7 @@ export function EdgeContextMenu({
                 <CommandList>
                     <CommandGroup>
                         <CommandItem className={"cursor-pointer"}>
-                            <div className="flex flex-row space-x-2" onClick={disconnectEdge}>
+                            <div className="flex flex-row space-x-2" onClick={onDisconnect}>
 
                                 <Unlink className={"w-5 h-5"}/>
                                 <div>
@@ -247,12 +238,58 @@ export function EdgeContextMenu({
     );
 }
 
+export function NodeContextMenu({
+        node,
+        top,
+        left,
+        right,
+        bottom,
+        ...props
+    }) {
+    const {setEdges, setNodes} = useReactFlow();
+
+    const onDelete = useCallback(
+        () => {
+            setNodes((nds) => nds.filter((n) => n.id !== node.id));
+            setEdges((eds) => eds.filter((e) => e.source !== node.id && e.target !== node.id));
+        },
+        []
+    );
+
+    return (
+        <div
+            style={{top, left, right, bottom}}
+            className="z-50 absolute"
+            {...props}
+        >
+            <Command className={"w-64 h-fit border rounded-lg"}>
+                <CommandList>
+                    <CommandGroup>
+                        <CommandItem className={"cursor-pointer"}>
+                            <div className="flex flex-row space-x-2" onClick={onDelete}>
+                                <Trash2 className={"w-5 h-5"}/>
+                                <div>
+                                    Eliminar
+                                </div>
+                            </div>
+                        </CommandItem>
+                    </CommandGroup>
+                </CommandList>
+            </Command>
+        </div>
+    );
+}
+
 export default function Page() {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [nodes, setNodes, onNodesChange ] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const {getNodes, getEdges, fitView} = useReactFlow();
+    const {getNodes, getEdges, fitView } = useReactFlow();
     const reactFlowWrapper = useRef(null);
     const [edgeMenu, setEdgeMenu] = useState(null);
+    const [nodeMenu, setNodeMenu] = useState(null);
+    const {editingNode, setEditingNode} = useEditingNode();
+
+
     const ref = useRef(null);
 
     const onConnect = useCallback(
@@ -319,18 +356,16 @@ export default function Page() {
 
     const onEdgeContextMenu = useCallback(
         (event, edge) => {
-            // Prevent native context menu from showing
             event.preventDefault();
 
-            // Calculate position of the context menu. We want to make sure it
-            // doesn't get positioned off-screen.
             const pane = ref.current.getBoundingClientRect();
             const screen = document.documentElement.getBoundingClientRect();
             const top = Math.min(event.clientY, screen.height - pane.height);
             const left = Math.min(event.clientX, screen.width - pane.width);
 
+            closeContextMenu();
             setEdgeMenu({
-                edge: edge,
+                edge,
                 top: event.clientY - top,
                 left: event.clientX - left,
             });
@@ -338,10 +373,42 @@ export default function Page() {
         [setEdgeMenu],
     );
 
-    const closeEdgeMenu = useCallback(() => setEdgeMenu(null), [setEdgeMenu]);
+    const onNodeContextMenu = useCallback(
+        (event, node) => {
+            event.preventDefault();
+
+            const pane = ref.current.getBoundingClientRect();
+            const screen = document.documentElement.getBoundingClientRect();
+            const top = Math.min(event.clientY, screen.height - pane.height);
+            const left = Math.min(event.clientX, screen.width - pane.width);
+
+            closeContextMenu();
+            setNodeMenu({
+                node,
+                top: event.clientY - top,
+                left: event.clientX - left,
+            });
+        },
+        [setEdgeMenu],
+    );
+
+    const closeContextMenu = useCallback(() => {
+        setEdgeMenu(null)
+        setNodeMenu(null)
+    }, [setEdgeMenu]);
 
     // Close the context menu if it's open whenever the window is clicked.
-    const onPaneClick = useCallback(() => closeEdgeMenu(), [closeEdgeMenu]);
+    const onPaneClick = useCallback(() => closeContextMenu(), [closeContextMenu]);
+
+    const isOpenEditor = editingNode !== null;
+
+    const onEditorClose = useCallback(() => {
+        setEditingNode(null);
+    }, [setEditingNode])
+
+    const onSaveNode = useCallback((node) => {
+        setNodes((nds) => nds.map((n) => n.id === node.id ? node : n));
+    }, [setNodes]);
 
     return (
         <div className={"flex flex-row flex-1"}>
@@ -349,7 +416,6 @@ export default function Page() {
             <div className={"flex-1 flex flex-col"}>
                 <div className={"p-4"}>
                     <div className="flex flex-row justify-between">
-
                         <ContentTop routes={routes}/>
                         <div className={"flex flex-row space-x-2"}>
                             <Button variant="default">Guardar</Button>
@@ -358,26 +424,32 @@ export default function Page() {
                         </div>
                     </div>
                 </div>
-                <div className={"h-full flex-1 flex-grow relative"} ref={reactFlowWrapper}>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        isValidConnection={isValidConnection}
-                        fitView
-                        panOnScroll
-                        nodeTypes={nodeTypes}
-                        onPaneClick={onPaneClick}
-                        onEdgeContextMenu={onEdgeContextMenu}
-                        ref={ref}
-                    >
-                        <Controls/>
-                        <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
-                        {edgeMenu && <EdgeContextMenu onClick={closeEdgeMenu} {...edgeMenu} />}
-                    </ReactFlow>
-
+                <div className={"h-full flex-1 flex-grow relative"}>
+                    <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50": "-z-50")}>
+                        {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
+                    </div>
+                    <div className={"h-full w-full relative bg-white"} ref={reactFlowWrapper}>
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
+                            onConnect={onConnect}
+                            isValidConnection={isValidConnection}
+                            fitView
+                            panOnScroll
+                            nodeTypes={nodeTypes}
+                            onPaneClick={onPaneClick}
+                            onEdgeContextMenu={onEdgeContextMenu}
+                            onNodeContextMenu={onNodeContextMenu}
+                            ref={ref}
+                        >
+                            <Controls/>
+                            <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
+                            {edgeMenu && <EdgeContextMenu onClick={closeContextMenu} {...edgeMenu} />}
+                            {nodeMenu && <NodeContextMenu onClick={closeContextMenu} {...nodeMenu} />}
+                        </ReactFlow>
+                    </div>
                 </div>
             </div>
         </div>
