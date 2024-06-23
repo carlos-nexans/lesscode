@@ -8,6 +8,7 @@ import {
 import Link from "next/link";
 import {Search} from "lucide-react";
 import {Input} from "@/components/ui/input";
+import React from "react";
 
 export type ContentTopProps = {
     routes: {
@@ -20,10 +21,9 @@ export default function ContentTop(props: ContentTopProps) {
     return (
         <div className={"flex flex-row justify-around w-full h-auto"}>
             <Breadcrumb className="hidden md:flex">
-
                 <BreadcrumbList>
                     {props.routes.map((route, index) => (
-                        <>
+                        <React.Fragment key={route.name}>
                             <BreadcrumbItem>
                                 {route.href && <BreadcrumbLink asChild>
                                     <Link href={route.href} prefetch={false}>
@@ -33,7 +33,7 @@ export default function ContentTop(props: ContentTopProps) {
                                 {!route.href && route.name}
                             </BreadcrumbItem>
                             {index < props.routes.length - 1 && <BreadcrumbSeparator/>}
-                        </>
+                        </React.Fragment>
                     ))}
                 </BreadcrumbList>
             </Breadcrumb>

@@ -1,22 +1,29 @@
 "use client"
 
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import ReactFlow, {
     addEdge,
     Background,
-    Controls, getConnectedEdges, getOutgoers,
+    Controls, getConnectedEdges, getIncomers, getOutgoers,
     Handle,
-    MiniMap,
     NodeProps,
-    Position, ReactFlowProvider,
+    Position,
     useEdgesState, useNodeId,
     useNodesState, useReactFlow, useStore
 } from 'reactflow';
 import {BackgroundVariant} from "@reactflow/background/dist/esm/types";
-import {DatabaseZap, FileCode2, PlugZap, PlusCircle, Trash2, Workflow} from "lucide-react";
+import {DatabaseZap, FileCode2, PlugZap, PlusCircle, Trash2, Unlink, Workflow} from "lucide-react";
 import ContentTop from "@/components/ContentTop";
 import {Card, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
+} from "@/components/ui/command"
 
 
 export type FunctionNodeProps = {
@@ -28,19 +35,34 @@ export type FunctionNodeProps = {
 const selector = (s) => ({
     nodeInternals: s.nodeInternals,
     edges: s.edges,
+    getNodes: s.getNodes,
+    setNodes: s.setNodes,
+    setEdges: s.setEdges,
 });
+
 function FunctionNode(props: NodeProps<FunctionNodeProps>) {
-    const { nodeInternals, edges } = useStore(selector);
+    const {nodeInternals, edges} = useStore(selector);
+    const {getNodes, setEdges, setNodes} = useReactFlow();
+    const nodes = getNodes();
+
     const nodeId = useNodeId();
     const node = nodeInternals.get(nodeId);
     const connectedEdges = getConnectedEdges([node], edges);
 
-    const sourceEdges = connectedEdges.filter((edge) => edge.source === nodeId).length;
-    const targetEdges = connectedEdges.filter((edge) => edge.target === nodeId).length;
+    const sourceEdges = connectedEdges.filter((e) => e.source === nodeId).length;
+    const targetEdges = connectedEdges.filter((e) => e.target === nodeId).length;
+
+    const onDelete = useCallback(
+        () => {
+            setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+            setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+        },
+        [nodes, edges]
+    );
 
     return (
         <>
-            <Handle type="target" position={Position.Top} isConnectable={targetEdges == 0} />
+            <Handle type="target" position={Position.Top} isConnectable={targetEdges == 0}/>
             <Card className={"w-96"}>
                 <CardHeader>
                     <CardTitle className={"font-normal text-md"}>
@@ -48,8 +70,10 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
                     </CardTitle>
                 </CardHeader>
                 <CardFooter className={"flex flex-row justify-end space-x-2"}>
-                    <Button variant="destructive"><Trash2 className={"w-5 h-5"}/></Button>
-                    <Button className={"flex flex-row space-x-2"}><FileCode2 className={"w-5 h-5"}/><div>Editar</div></Button>
+                    <Button variant="destructive" onClick={onDelete}><Trash2 className={"w-5 h-5"}/></Button>
+                    <Button className={"flex flex-row space-x-2"}><FileCode2 className={"w-5 h-5"}/>
+                        <div>Editar</div>
+                    </Button>
                 </CardFooter>
             </Card>
             <Handle
@@ -171,15 +195,69 @@ export function BuilderSidebar() {
     )
 }
 
+const idGenerator = (prefix: string = 'generatedId-') => {
+    let id = 0;
+    return () => {
+        id += 1;
+        return `${prefix}${id}`;
+    }
+}
+
+const getId = idGenerator();
+
+export function EdgeContextMenu({
+                                    edge,
+                                    top,
+                                    left,
+                                    right,
+                                    bottom,
+                                    ...props
+                                }) {
+    const {setEdges, getEdges} = useReactFlow();
+
+    const disconnectEdge = useCallback(() => {
+        console.log("Disconnecting edge", edge);
+        const edges = getEdges()
+        const newEdges = edges.filter((e) => e.id !== edge.id);
+        setEdges(newEdges);
+    }, [setEdges, getEdges]);
+
+    return (
+        <div
+            style={{top, left, right, bottom}}
+            className="z-50 absolute"
+            {...props}
+        >
+            <Command className={"w-64 h-fit border rounded-lg"}>
+                <CommandList>
+                    <CommandGroup>
+                        <CommandItem className={"cursor-pointer"}>
+                            <div className="flex flex-row space-x-2" onClick={disconnectEdge}>
+
+                                <Unlink className={"w-5 h-5"}/>
+                                <div>
+                                    Desconectar
+                                </div>
+                            </div>
+                        </CommandItem>
+                    </CommandGroup>
+                </CommandList>
+            </Command>
+        </div>
+    );
+}
+
 export default function Page() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const { getNodes, getEdges } = useReactFlow();
+    const {getNodes, getEdges} = useReactFlow();
     const reactFlowWrapper = useRef(null);
+    const [edgeMenu, setEdgeMenu] = useState(null);
+    const ref = useRef(null);
 
     const onConnect = useCallback(
         (params) => {
-            setEdges((eds) => addEdge(params, eds))
+            setEdges((eds) => addEdge({...params, animated: true}, eds))
         },
         [],
     );
@@ -208,15 +286,79 @@ export default function Page() {
         [getNodes, getEdges],
     );
 
+    const addNode = useCallback(() => {
+        const id = getId();
+        const mostBottomNode = nodes.reduce((acc, node) => {
+            if (node.position.y > acc.position.y) {
+                return node;
+            }
+            return acc;
+        }, {position: {x: 0, y: 0}});
+
+        const x = mostBottomNode.position.x;
+        const y = mostBottomNode.position.y + 200;
+
+        const newNode = {
+            id,
+            type: 'FunctionNode',
+            position: {
+                x,
+                y,
+            },
+            data: {
+                id: id,
+                name: 'Nuevo nodo',
+                func: "async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"
+            },
+            origin: [0.5, 0.0],
+        };
+
+        console.log(newNode)
+        setNodes((nds) => nds.concat(newNode));
+    }, [])
+
+    const onEdgeContextMenu = useCallback(
+        (event, edge) => {
+            // Prevent native context menu from showing
+            event.preventDefault();
+
+            // Calculate position of the context menu. We want to make sure it
+            // doesn't get positioned off-screen.
+            const pane = ref.current.getBoundingClientRect();
+            const screen = document.documentElement.getBoundingClientRect();
+            const top = Math.min(event.clientY, screen.height - pane.height);
+            const left = Math.min(event.clientX, screen.width - pane.width);
+
+            setEdgeMenu({
+                edge: edge,
+                top: event.clientY - top,
+                left: event.clientX - left,
+            });
+        },
+        [setEdgeMenu],
+    );
+
+    const closeEdgeMenu = useCallback(() => setEdgeMenu(null), [setEdgeMenu]);
+
+    // Close the context menu if it's open whenever the window is clicked.
+    const onPaneClick = useCallback(() => closeEdgeMenu(), [closeEdgeMenu]);
+
     return (
         <div className={"flex flex-row flex-1"}>
-            <BuilderSidebar />
+            <BuilderSidebar/>
             <div className={"flex-1 flex flex-col"}>
                 <div className={"p-4"}>
-                    <ContentTop routes={routes}/>
-                </div>
-                <div className={"h-full flex-1 flex-grow"} ref={reactFlowWrapper}>
+                    <div className="flex flex-row justify-between">
 
+                        <ContentTop routes={routes}/>
+                        <div className={"flex flex-row space-x-2"}>
+                            <Button variant="default">Guardar</Button>
+                            <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar
+                                nodo</Button>
+                        </div>
+                    </div>
+                </div>
+                <div className={"h-full flex-1 flex-grow relative"} ref={reactFlowWrapper}>
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
@@ -227,9 +369,13 @@ export default function Page() {
                         fitView
                         panOnScroll
                         nodeTypes={nodeTypes}
+                        onPaneClick={onPaneClick}
+                        onEdgeContextMenu={onEdgeContextMenu}
+                        ref={ref}
                     >
                         <Controls/>
                         <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
+                        {edgeMenu && <EdgeContextMenu onClick={closeEdgeMenu} {...edgeMenu} />}
                     </ReactFlow>
 
                 </div>
