@@ -19,7 +19,7 @@ export type ContentTopProps = {
 
 export default function ContentTop(props: ContentTopProps) {
     return (
-        <div className={"flex flex-row justify-around w-full h-auto"}>
+        <div className={"flex flex-row justify-around w-full h-auto text-base"}>
             <Breadcrumb className="hidden md:flex">
                 <BreadcrumbList>
                     {props.routes.map((route, index) => (

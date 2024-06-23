@@ -1,19 +1,14 @@
-"use client"
-
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import {useUser} from "@auth0/nextjs-auth0/client";
-import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
+import {UserProvider} from "@auth0/nextjs-auth0/client";
 
-export default withPageAuthRequired(function Layout({
+export default function Layout({
                                    children,
                                }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const user = useUser()
-    console.log(user)
     return (
-
+        <UserProvider>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <Header/>
             <div className="flex flex-col sm:pl-14 flex-grow">
@@ -23,5 +18,6 @@ export default withPageAuthRequired(function Layout({
                 </main>
             </div>
         </div>
+        </UserProvider>
     );
-});
+}
