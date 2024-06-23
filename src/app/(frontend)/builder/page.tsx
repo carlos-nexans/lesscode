@@ -250,7 +250,7 @@ export function EdgeContextMenu({
 export default function Page() {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const {getNodes, getEdges} = useReactFlow();
+    const {getNodes, getEdges, fitView} = useReactFlow();
     const reactFlowWrapper = useRef(null);
     const [edgeMenu, setEdgeMenu] = useState(null);
     const ref = useRef(null);
@@ -313,9 +313,9 @@ export default function Page() {
             origin: [0.5, 0.0],
         };
 
-        console.log(newNode)
         setNodes((nds) => nds.concat(newNode));
-    }, [])
+        fitView()
+    }, [nodes])
 
     const onEdgeContextMenu = useCallback(
         (event, edge) => {
