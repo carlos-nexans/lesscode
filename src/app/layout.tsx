@@ -3,6 +3,7 @@ import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import {UserProvider} from "@auth0/nextjs-auth0/client";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -27,7 +28,9 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
+      <UserProvider>
         <TooltipProvider>{children}</TooltipProvider>
+      </UserProvider>
       </body>
     </html>
   );
