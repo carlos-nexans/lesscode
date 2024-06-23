@@ -351,7 +351,7 @@ export default function Page() {
         };
 
         setNodes((nds) => nds.concat(newNode));
-        fitView()
+        setTimeout(() => fitView(), 0)
     }, [nodes])
 
     const onEdgeContextMenu = useCallback(
