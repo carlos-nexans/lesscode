@@ -413,7 +413,10 @@ export default function Page() {
     return (
         <div className={"flex flex-row flex-1"}>
             <BuilderSidebar/>
-            <div className={"flex-1 flex flex-col"}>
+            <div className={"flex-1 flex flex-col relative"}>
+                <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50" : "-z-50")}>
+                    {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
+                </div>
                 <div className={"p-4"}>
                     <div className="flex flex-row justify-between">
                         <ContentTop routes={routes}/>
@@ -425,9 +428,6 @@ export default function Page() {
                     </div>
                 </div>
                 <div className={"h-full flex-1 flex-grow relative"}>
-                    <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50": "-z-50")}>
-                        {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
-                    </div>
                     <div className={"h-full w-full relative bg-white"} ref={reactFlowWrapper}>
                         <ReactFlow
                             nodes={nodes}
