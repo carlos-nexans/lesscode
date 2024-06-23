@@ -135,7 +135,7 @@ const routes = [
 
 export function BuilderSidebar() {
     return (
-        <div className={"flex flex-col w-64 border-r text-sm font-mono"}>
+        <div className={"flex flex-col w-64 border-r text-sm"}>
             <div className={"flex flex-col border-b "}>
                 <div className={"flex flex-row justify-between p-2 bg-accent"}>
                     <div className={"flex flex-row space-x-2"}>
@@ -166,15 +166,15 @@ export function BuilderSidebar() {
                     <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
                 <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer font-mono"}>
                     <span>POST /products/reception</span>
                 </div>
                 <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer font-mono"}>
                     <span>POST /products/dispatch</span>
                 </div>
                 <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer font-mono"}>
                     <span>GET /products/:productId</span>
                 </div>
             </div>
