@@ -1,8 +1,13 @@
 import {NextAppRouterHandler} from "@auth0/nextjs-auth0";
-import connectToDatabase from "@/lib/mongodb";
+import {createApplication, getApplications} from "@/app/services/apps";
 
 export const GET: NextAppRouterHandler = async (req, {params}) => {
-    const { db } = await connectToDatabase()
-    const apps = await db.collection('Application').find().toArray();
+    const apps = await getApplications();
     return Response.json({apps});
+}
+
+export const POST: NextAppRouterHandler = async (req, {params}) => {
+    const body = await req.json();
+    const app = await createApplication(body);
+    return Response.json({app});
 }

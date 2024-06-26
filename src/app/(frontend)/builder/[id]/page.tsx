@@ -1,6 +1,6 @@
 "use client"
 
-import React, {createContext, useCallback, useContext, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import ReactFlow, {
     addEdge,
     Background,
@@ -26,6 +26,9 @@ import {
 } from "@/components/ui/command"
 import {cn} from "@/lib/utils";
 import {NodeEditor, useEditingNode} from "@/components/builder/NodeEditor";
+import {useQuery} from "@tanstack/react-query";
+import {Application} from "@/app/services/apps";
+import {Skeleton} from "@/components/ui/skeleton";
 
 
 export type FunctionNodeProps = {
@@ -62,11 +65,12 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
                         {props.data.name}
                     </CardTitle>
                 </CardHeader>
-                    <CardFooter className={"flex flex-row justify-start space-x-2"}>
-                        <Button onClick={onEdit} size="sm" className={"flex flex-row space-x-2"}><FileCode2 className={"w-5 h-5"}/>
-                            <div>Editar</div>
-                        </Button>
-                    </CardFooter>
+                <CardFooter className={"flex flex-row justify-start space-x-2"}>
+                    <Button onClick={onEdit} size="sm" className={"flex flex-row space-x-2"}><FileCode2
+                        className={"w-5 h-5"}/>
+                        <div>Editar</div>
+                    </Button>
+                </CardFooter>
             </Card>
             <Handle
                 type="source"
@@ -75,10 +79,6 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
             />
         </>
     )
-}
-
-const nodeTypes = {
-    FunctionNode
 }
 
 // {"type":"SequentialGroup","children":[{"type":"FunctionNode","func":"async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"}]}
@@ -118,14 +118,12 @@ const initialEdges = [
     {id: 'e2-3', source: '2', target: '3', animated: true},
 ];
 
-const routes = [
-    {name: "Aplicaciones", href: "/apps"},
-    {name: "Gestión de stock", href: "/apps/idDeLaApp"},
-    {name: "Flujos de trabajo"},
-    {name: "Ingresar productos"},
-]
-
-export function BuilderSidebar() {
+export function BuilderSidebar({workflows, endpoints, databases, isLoading}: {
+    workflows?: { _id?: string, name: string, description: string }[],
+    endpoints?: { _id?: string, method: string, pathPattern: string, workflow: string }[],
+    databases?: { _id?: string, name: string }[],
+    isLoading: boolean
+}) {
     return (
         <div className={"flex flex-col w-64 border-r text-sm"}>
             <div className={"flex flex-col border-b "}>
@@ -136,18 +134,27 @@ export function BuilderSidebar() {
                     </div>
                     <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                    <span>Ingresar productos</span>
-                </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                    <span>Despachar productos</span>
-                </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                    <span>Ver stock productos</span>
-                </div>
+                {workflows && workflows!.map((workflow, i) => (
+                    <div
+                        key={workflow._id}
+                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                        <span>{workflow.name}</span>
+                    </div>
+                ))}
+                {workflows && workflows!.length === 0 && (
+                    <div
+                        className={"flex flex-row space-x-2 p-2"}>
+                        <span>No hay flujos de trabajo</span>
+                    </div>
+                )}
+                {isLoading && (
+                    <>
+                        <div
+                            className={"flex flex-row space-x-2 p-2"}>
+                            <Skeleton className="brightness-90 w-full h-[20px] rounded-full"/>
+                        </div>
+                    </>
+                )}
             </div>
             <div className={"flex flex-col border-b "}>
                 <div className={"flex flex-row justify-between p-2 bg-accent"}>
@@ -157,18 +164,27 @@ export function BuilderSidebar() {
                     </div>
                     <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer font-mono"}>
-                    <span>POST /products/reception</span>
-                </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer font-mono"}>
-                    <span>POST /products/dispatch</span>
-                </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer font-mono"}>
-                    <span>GET /products/:productId</span>
-                </div>
+                {endpoints && endpoints!.map((endpoint, i) => (
+                    <div
+                        key={endpoint._id}
+                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                        <span>{endpoint.method} {endpoint.pathPattern}</span>
+                    </div>
+                ))}
+                {endpoints && endpoints!.length === 0 && (
+                    <div
+                        className={"flex flex-row space-x-2 p-2"}>
+                        <span>No hay endpoints</span>
+                    </div>
+                )}
+                {isLoading && (
+                    <>
+                        <div
+                            className={"flex flex-row space-x-2 p-2"}>
+                            <Skeleton className="brightness-90 w-full h-[20px] rounded-full"/>
+                        </div>
+                    </>
+                )}
             </div>
             <div className={"flex flex-col border-b "}>
                 <div className={"flex flex-row justify-between p-2 bg-accent"}>
@@ -178,10 +194,27 @@ export function BuilderSidebar() {
                     </div>
                     <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
-                <div
-                    className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                    <span>PostgreSQL</span>
-                </div>
+                {databases && databases!.map((database, i) => (
+                    <div
+                        key={database._id}
+                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                        <span>{database.name}</span>
+                    </div>
+                ))}
+                {databases && databases!.length === 0 && (
+                    <div
+                        className={"flex flex-row space-x-2 p-2"}>
+                        <span>No hay bases de datos</span>
+                    </div>
+                )}
+                {isLoading && (
+                    <>
+                        <div
+                            className={"flex flex-row space-x-2 p-2"}>
+                            <Skeleton className="brightness-90 w-full h-[20px] rounded-full"/>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     )
@@ -239,13 +272,13 @@ export function EdgeContextMenu({
 }
 
 export function NodeContextMenu({
-        node,
-        top,
-        left,
-        right,
-        bottom,
-        ...props
-    }) {
+                                    node,
+                                    top,
+                                    left,
+                                    right,
+                                    bottom,
+                                    ...props
+                                }) {
     const {setEdges, setNodes} = useReactFlow();
 
     const onDelete = useCallback(
@@ -280,17 +313,46 @@ export function NodeContextMenu({
     );
 }
 
-export default function Page() {
-    const [nodes, setNodes, onNodesChange ] = useNodesState(initialNodes);
+const nodeTypes = {
+    'FunctionNode': FunctionNode
+}
+
+const getApplication = async (id): Promise<{app: Application}> => {
+    const res = await fetch(`/api/apps/${id}`)
+    return res.json()
+}
+
+export default function Page(props: { params: { id: string } }) {
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const {getNodes, getEdges, fitView } = useReactFlow();
+    const {getNodes, getEdges, fitView} = useReactFlow();
     const reactFlowWrapper = useRef(null);
     const [edgeMenu, setEdgeMenu] = useState(null);
     const [nodeMenu, setNodeMenu] = useState(null);
     const {editingNode, setEditingNode} = useEditingNode();
-
-
     const ref = useRef(null);
+
+    const [selectedWorkflow, setSelectedWorkflow] = useState<null | string>(null);
+
+    const {data, isLoading} = useQuery({queryKey: [`app-${props.params.id}`], queryFn: () => getApplication(props.params.id)})
+
+    const routes = useMemo(() => {
+        if (!data) return []
+
+        const workflow = data.app.workflows.find((w) => w._id === selectedWorkflow);
+
+        if (!workflow) return [
+            {name: "Aplicaciones", href: "/apps"},
+            {name: data.app.name, href: `/apps/${data.app._id}`},
+        ];
+
+        return [
+            {name: "Aplicaciones", href: "/apps"},
+            {name: data.app.name, href: `/apps/${data.app._id}`},
+            {name: "Flujos de trabajo"},
+            {name: workflow.name},
+        ]
+    }, [data, selectedWorkflow])
 
     const onConnect = useCallback(
         (params) => {
@@ -412,14 +474,19 @@ export default function Page() {
 
     return (
         <div className={"flex flex-row flex-1"}>
-            <BuilderSidebar/>
+            <BuilderSidebar
+                workflows={data?.app?.workflows}
+                endpoints={data?.app?.endpoints}
+                databases={data?.app?.databases}
+                isLoading={isLoading}
+            />
             <div className={"flex-1 flex flex-col relative"}>
                 <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50" : "-z-50")}>
                     {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
                 </div>
                 <div className={"p-4"}>
                     <div className="flex flex-row justify-between">
-                        <ContentTop routes={routes}/>
+                        <ContentTop routes={routes} isLoading={isLoading}/>
                         <div className={"flex flex-row space-x-2"}>
                             <Button variant="default">Guardar</Button>
                             <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar

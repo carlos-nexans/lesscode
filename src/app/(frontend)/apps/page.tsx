@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery} from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 import {PlusCircle, Sparkles} from "lucide-react";
@@ -18,17 +18,29 @@ import {
     AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import {z} from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Textarea} from "@/components/ui/textarea";
+import {toast} from "sonner";
+import {queryClient} from "@/config/tanstack";
 
 const getApplications = async () => {
     const res = await fetch('/api/apps')
+    return res.json()
+}
+
+const createApplication = async (data) => {
+    const res = await fetch('/api/apps', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
     return res.json()
 }
 
@@ -72,17 +84,9 @@ const formSchema = z.object({
     name: z.string({
         required_error: "El nombre es requerido",
     }).min(3),
-    email: z.string({
-        required_error: "El correo electrónico es requerido",
-    }).email(),
-    password: z.string({
-        required_error: "La contraseña es requerida",
-    }).min(8, {
-        message: "La contraseña debe tener al menos 8 caracteres",
-    }),
-    role: z.string({
-        required_error: "El rol es requerido",
-    }),
+    description: z.string({
+        required_error: "La descripción es requerida",
+    }).min(3),
 })
 
 function CreateAppDialog({
@@ -102,9 +106,9 @@ function CreateAppDialog({
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className={"space-y-2"}>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Agregar usuario</AlertDialogTitle>
+                    <AlertDialogTitle>Crear aplicación</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Completa los campos para agregar un nuevo usuario en el sistema.
+                        Completa los campos para crear una aplicación nueva.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="grid gap-6">
@@ -115,7 +119,7 @@ function CreateAppDialog({
                             <FormItem>
                                 <FormLabel>Nombre</FormLabel>
                                 <FormControl>
-                                    <Input type="text" placeholder="John Doe" {...field} />
+                                    <Input type="text" placeholder="Ej. sistema de stock" {...field} />
                                 </FormControl>
                                 <FormMessage/>
                             </FormItem>
@@ -123,48 +127,14 @@ function CreateAppDialog({
                     />
                     <FormField
                         control={form.control}
-                        name="email"
+                        name="description"
                         render={({field}) => (
                             <FormItem>
-                                <FormLabel>Correo electrónico</FormLabel>
+                                <FormLabel>Descripción</FormLabel>
                                 <FormControl>
-                                    <Input type="email" placeholder="example@domain.com" {...field} />
+                                    <Textarea type="text" placeholder="Ej. Maneja el stock del centro de distribución." {...field} />
                                 </FormControl>
                                 <FormMessage/>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({field}) => (
-                            <FormItem>
-                                <FormLabel>Contraseña</FormLabel>
-                                <FormControl>
-                                    <Input type={"password"} {...field} />
-                                </FormControl>
-                                <FormMessage/>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="role"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Rol</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Selecciona rol" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="rol_kzxWxOpB2sO9unu7">admin</SelectItem>
-                                        <SelectItem value="rol_ppAvI15soqOKXeGb">dev</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -183,13 +153,25 @@ const routes = [{name: "Aplicaciones", href: "/apps"}]
 export default function Page() {
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const {data} = useQuery({queryKey: ['apps'], queryFn: getApplications})
+    const createApp = useMutation({
+        mutationFn: createApplication,
+        onSuccess: () => {
+            toast("Aplicación creada correctamente.")
+            queryClient.invalidateQueries({queryKey: ['apps']})
+        },
+        onError: (error) => {
+            toast.message(error.message)
+        }
+    })
+
+
     return (
         <div className={"p-4 flex flex-col space-y-2"}>
             <AlertDialog open={dialogOpen}>
                 <AlertDialogContent>
                     <CreateAppDialog
                         onClose={() => setDialogOpen(false)}
-                        onCreate={data => {}}/>
+                        onCreate={data => createApp.mutate(data)}/>
                 </AlertDialogContent>
             </AlertDialog>
             <div className="flex flex-row justify-between">
@@ -204,7 +186,7 @@ export default function Page() {
                 {data?.apps.map((app) => (
                     <AppCard
                         key={app.id}
-                        id={app.id}
+                        id={app._id}
                         name={app.name}
                         description={app.description}
                     />
