@@ -1,6 +1,7 @@
 import {getDatabase} from "@/lib/mongodb";
 import {nanoid} from "nanoid";
 import { ObjectId } from "mongodb";
+import {Workflow} from 'executable-workflows';
 
 const shortIdSize = 6;
 
@@ -68,18 +69,23 @@ export const getApplications = async (): Promise<Application[]> => {
     return applications.find().toArray();
 }
 
-export const addWorkflow = async (appId: string, data: Partial<Workflow>): Promise<Application | null> => {
+export const addWorkflow = async (appId: string, data: Partial<Workflow>): Promise<Workflow> => {
     const db = await getDatabase();
     const applications = db.collection<Application>(collectionName);
     const idObject = new ObjectId(appId);
     const id = new ObjectId().toHexString();
+    const workflow = {
+        ...data,
+        _id: id
+    } as Workflow;
     const res = await applications.updateOne(
         { _id: idObject } as any,
-        { $push: { workflows: {
-            ...data,
-            _id: id
-        } as Workflow } }
+        { $push: { workflows: workflow } }
     );
-    const result = await getApplicationById(appId);
-    return result;
+
+    if (res.upsertedCount === 0) {
+        throw new Error("Application does not exist")
+    }
+
+    return workflow;
 }

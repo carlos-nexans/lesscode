@@ -27,7 +27,7 @@ import {
 import {cn} from "@/lib/utils";
 import {NodeEditor, useEditingNode} from "@/components/builder/NodeEditor";
 import {useQuery} from "@tanstack/react-query";
-import {Application} from "@/app/repository/apps";
+import {Application} from "@/repository/apps";
 import {Skeleton} from "@/components/ui/skeleton";
 import {getApplication} from "@/services/app";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";

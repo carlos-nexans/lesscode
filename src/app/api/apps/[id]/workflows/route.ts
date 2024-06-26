@@ -1,8 +1,12 @@
-import {addWorkflow} from "@/app/repository/apps";
+import {addWorkflow} from "@/repository/apps";
+import {Workflow} from "executable-workflows";
+import {storeWorkflow} from "@/repository/workflows";
 
 export const POST = async function (req, { params }) {
     const id = params.id;
-    const body = await req.json()
-    const result = await addWorkflow(id, body);
-    return Response.json({app: result})
+    const data = await req.json()
+    const workflow = await addWorkflow(id, data);
+    const emptyWorkflow = Workflow.empty();
+    await storeWorkflow(workflow._id!, emptyWorkflow);
+    return Response.json({workflow })
 }
