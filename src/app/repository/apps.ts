@@ -2,6 +2,8 @@ import {getDatabase} from "@/lib/mongodb";
 import {nanoid} from "nanoid";
 import { ObjectId } from "mongodb";
 
+const shortIdSize = 6;
+
 export type Endpoint = {
     _id?: string
     method: string
@@ -43,9 +45,10 @@ export const createApplication = async (data: Partial<Application>): Promise<App
         name: data.name!,
         description: data.description!,
         createdAt: new Date().toISOString(),
-        shortId: nanoid(),
+        shortId: nanoid(shortIdSize),
         endpoints: [],
-        workflows: []
+        workflows: [],
+        databases: []
     });
     const result = await getApplicationById(res.insertedId);
 
@@ -63,4 +66,19 @@ export const getApplications = async (): Promise<Application[]> => {
     const db = await getDatabase();
     const applications = db.collection<Application>(collectionName);
     return applications.find().toArray();
+}
+
+export const addWorkflow = async (appId: string, data: Partial<Workflow>): Promise<Application | null> => {
+    const db = await getDatabase();
+    const applications = db.collection<Application>(collectionName);
+    const idObject = new ObjectId(appId);
+    const res = await applications.updateOne(
+        { _id: idObject } as any,
+        { $push: { workflows: {
+            ...data,
+            _id: new ObjectId().toHexString()
+        } as Workflow } }
+    );
+    const result = await getApplicationById(appId);
+    return result;
 }

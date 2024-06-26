@@ -30,6 +30,8 @@ import {useQuery} from "@tanstack/react-query";
 import {Application} from "@/app/repository/apps";
 import {Skeleton} from "@/components/ui/skeleton";
 import {getApplication} from "@/services/app";
+import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
+import Link from "next/link";
 
 
 export type FunctionNodeProps = {
@@ -119,12 +121,14 @@ const initialEdges = [
     {id: 'e2-3', source: '2', target: '3', animated: true},
 ];
 
-export function BuilderSidebar({workflows, endpoints, databases, isLoading}: {
+export function BuilderSidebar({applicationId, workflows, endpoints, databases, isLoading}: {
+    applicationId: string,
     workflows?: { _id?: string, name: string, description: string }[],
     endpoints?: { _id?: string, method: string, pathPattern: string, workflow: string }[],
     databases?: { _id?: string, name: string }[],
     isLoading: boolean
 }) {
+    const [createWorkflowDialogOpen, setCreateWorkflowDialogOpen] = useState(false);
     return (
         <div className={"flex flex-col w-64 border-r text-sm"}>
             <div className={"flex flex-col border-b "}>
@@ -133,14 +137,21 @@ export function BuilderSidebar({workflows, endpoints, databases, isLoading}: {
                         <Workflow className={"w-5 h-5"}/>
                         <span>Flujos de trabajo</span>
                     </div>
-                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
+                    <PlusCircle onClick={() => setCreateWorkflowDialogOpen(true)} className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
+                <CreateWorkflowDialog
+                    applicationId={applicationId}
+                    dialogOpen={createWorkflowDialogOpen}
+                    setDialogOpen={setCreateWorkflowDialogOpen}
+                />
                 {workflows && workflows!.map((workflow, i) => (
-                    <div
-                        key={workflow._id}
-                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                        <span>{workflow.name}</span>
-                    </div>
+                    <Link href={`/builder/${applicationId}/workflows/${workflow._id}`} key={workflow._id}>
+                        <div
+                            key={workflow._id}
+                            className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                            <span>{workflow.name}</span>
+                        </div>
+                    </Link>
                 ))}
                 {workflows && workflows!.length === 0 && (
                     <div

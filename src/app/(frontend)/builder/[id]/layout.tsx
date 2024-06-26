@@ -7,6 +7,7 @@ import React from "react";
 import {BuilderSidebar} from "@/app/(frontend)/builder/[id]/workflows/[workflowId]/page";
 import {useQuery} from "@tanstack/react-query";
 import {getApplication} from "@/services/app";
+import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 
 export default function Layout(props: {
     children: React.ReactNode,
@@ -18,6 +19,7 @@ export default function Layout(props: {
     return (
         <div className={"flex flex-row flex-1"}>
             <BuilderSidebar
+                applicationId={props.params.id}
                 workflows={data?.app?.workflows}
                 endpoints={data?.app?.endpoints}
                 databases={data?.app?.databases}
