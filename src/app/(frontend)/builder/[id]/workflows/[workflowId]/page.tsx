@@ -32,6 +32,7 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {getApplication} from "@/services/app";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import Link from "next/link";
+import {getWorkflowDefinition} from "@/services/workflows";
 
 
 export type FunctionNodeProps = {
@@ -137,7 +138,8 @@ export function BuilderSidebar({applicationId, workflows, endpoints, databases, 
                         <Workflow className={"w-5 h-5"}/>
                         <span>Flujos de trabajo</span>
                     </div>
-                    <PlusCircle onClick={() => setCreateWorkflowDialogOpen(true)} className={"w-5 h-5 hover:cursor-pointer"}/>
+                    <PlusCircle onClick={() => setCreateWorkflowDialogOpen(true)}
+                                className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
                 <CreateWorkflowDialog
                     applicationId={applicationId}
@@ -329,7 +331,7 @@ const nodeTypes = {
     'FunctionNode': FunctionNode
 }
 
-export default function Page(props: { params: { id: string } }) {
+export default function Page(props: { params: { id: string, workflowId: string } }) {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const {getNodes, getEdges, fitView} = useReactFlow();
@@ -339,19 +341,22 @@ export default function Page(props: { params: { id: string } }) {
     const {editingNode, setEditingNode} = useEditingNode();
     const ref = useRef(null);
 
-    const [selectedWorkflow, setSelectedWorkflow] = useState<null | string>(null);
-
-    const {data, isLoading} = useQuery({queryKey: [`app-${props.params.id}`], queryFn: () => getApplication(props.params.id)})
+    const {data, isLoading} = useQuery({
+        queryKey: [`app-${props.params.id}`],
+        queryFn: () => getApplication(props.params.id)
+    })
+    const {
+        data: workflowData,
+        isLoading: workflowIsLoading
+    } = useQuery({
+        queryKey: [`workflow-${props.params.workflowId}`],
+        queryFn: () => getWorkflowDefinition(props.params.workflowId)
+    })
 
     const routes = useMemo(() => {
         if (!data) return []
 
-        const workflow = data.app.workflows.find((w) => w._id === selectedWorkflow);
-
-        if (!workflow) return [
-            {name: "Aplicaciones", href: "/apps"},
-            {name: data.app.name, href: `/apps/${data.app._id}`},
-        ];
+        const workflow = data.app.workflows.find((w) => w._id === props.params.workflowId)!;
 
         return [
             {name: "Aplicaciones", href: "/apps"},
@@ -359,7 +364,7 @@ export default function Page(props: { params: { id: string } }) {
             {name: "Flujos de trabajo"},
             {name: workflow.name},
         ]
-    }, [data, selectedWorkflow])
+    }, [data])
 
     const onConnect = useCallback(
         (params) => {
@@ -481,43 +486,43 @@ export default function Page(props: { params: { id: string } }) {
 
     return (
         <>
-                <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50" : "-z-50")}>
-                    {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
-                </div>
-                <div className={"p-4"}>
-                    <div className="flex flex-row justify-between">
-                        <ContentTop routes={routes} isLoading={isLoading}/>
-                        <div className={"flex flex-row space-x-2"}>
-                            <Button variant="default">Guardar</Button>
-                            <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar
-                                nodo</Button>
-                        </div>
+            <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50" : "-z-50")}>
+                {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
+            </div>
+            <div className={"p-4"}>
+                <div className="flex flex-row justify-between">
+                    <ContentTop routes={routes} isLoading={isLoading}/>
+                    <div className={"flex flex-row space-x-2"}>
+                        <Button variant="default">Guardar</Button>
+                        <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar
+                            nodo</Button>
                     </div>
                 </div>
-                <div className={"h-full flex-1 flex-grow relative"}>
-                    <div className={"h-full w-full relative bg-white"} ref={reactFlowWrapper}>
-                        <ReactFlow
-                            nodes={nodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            isValidConnection={isValidConnection}
-                            fitView
-                            panOnScroll
-                            nodeTypes={nodeTypes}
-                            onPaneClick={onPaneClick}
-                            onEdgeContextMenu={onEdgeContextMenu}
-                            onNodeContextMenu={onNodeContextMenu}
-                            ref={ref}
-                        >
-                            <Controls/>
-                            <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
-                            {edgeMenu && <EdgeContextMenu onClick={closeContextMenu} {...edgeMenu} />}
-                            {nodeMenu && <NodeContextMenu onClick={closeContextMenu} {...nodeMenu} />}
-                        </ReactFlow>
-                    </div>
+            </div>
+            <div className={"h-full flex-1 flex-grow relative"}>
+                <div className={"h-full w-full relative bg-white"} ref={reactFlowWrapper}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        isValidConnection={isValidConnection}
+                        fitView
+                        panOnScroll
+                        nodeTypes={nodeTypes}
+                        onPaneClick={onPaneClick}
+                        onEdgeContextMenu={onEdgeContextMenu}
+                        onNodeContextMenu={onNodeContextMenu}
+                        ref={ref}
+                    >
+                        <Controls/>
+                        <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
+                        {edgeMenu && <EdgeContextMenu onClick={closeContextMenu} {...edgeMenu} />}
+                        {nodeMenu && <NodeContextMenu onClick={closeContextMenu} {...nodeMenu} />}
+                    </ReactFlow>
                 </div>
+            </div>
         </>
     );
 }

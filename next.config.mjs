@@ -6,6 +6,7 @@ const nextConfig = {
     experimental: {
         instrumentationHook: true,
     },
+    transpilePackages: ['executable-workflows'],
 };
 
 export default nextConfig;

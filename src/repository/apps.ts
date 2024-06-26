@@ -78,14 +78,10 @@ export const addWorkflow = async (appId: string, data: Partial<Workflow>): Promi
         ...data,
         _id: id
     } as Workflow;
-    const res = await applications.updateOne(
+    await applications.updateOne(
         { _id: idObject } as any,
         { $push: { workflows: workflow } }
     );
-
-    if (res.upsertedCount === 0) {
-        throw new Error("Application does not exist")
-    }
 
     return workflow;
 }
