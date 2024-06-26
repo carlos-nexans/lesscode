@@ -1,5 +1,5 @@
 import {NextAppRouterHandler} from "@auth0/nextjs-auth0";
-import {createApplication, getApplications} from "@/app/services/apps";
+import {createApplication, getApplications} from "@/app/repository/apps";
 
 export const GET: NextAppRouterHandler = async (req, {params}) => {
     const apps = await getApplications();

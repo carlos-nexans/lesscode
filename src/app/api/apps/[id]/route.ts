@@ -1,4 +1,4 @@
-import {getApplicationById} from "@/app/services/apps";
+import {getApplicationById} from "@/app/repository/apps";
 
 export const GET = async function (req, { params }) {
     const id = params.id;
