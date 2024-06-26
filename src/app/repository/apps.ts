@@ -72,11 +72,12 @@ export const addWorkflow = async (appId: string, data: Partial<Workflow>): Promi
     const db = await getDatabase();
     const applications = db.collection<Application>(collectionName);
     const idObject = new ObjectId(appId);
+    const id = new ObjectId().toHexString();
     const res = await applications.updateOne(
         { _id: idObject } as any,
         { $push: { workflows: {
             ...data,
-            _id: new ObjectId().toHexString()
+            _id: id
         } as Workflow } }
     );
     const result = await getApplicationById(appId);
