@@ -26,3 +26,14 @@ export const addEndpoint = async (id: string, data: any): Promise<{app: Applicat
     })
     return res.json()
 }
+
+export const editEndpoint = async (id: string, endpointId: string, data: any): Promise<{app: Application}> => {
+    const res = await fetch(`/api/apps/${id}/endpoints/${endpointId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    return res.json()
+}

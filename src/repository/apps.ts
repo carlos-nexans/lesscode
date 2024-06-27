@@ -102,3 +102,20 @@ export const addEndpoint = async (appId: string, data: Partial<Endpoint>): Promi
 
     return endpoint;
 }
+
+export const editEndpoint = async (appId: string, endpointId: string, data: Partial<Endpoint>): Promise<Endpoint> => {
+    const db = await getDatabase();
+    const applications = db.collection<Application>(collectionName);
+    const idObject = new ObjectId(appId);
+    const endpoint = {
+        ...data,
+        _id: endpointId
+    } as Endpoint;
+
+    const result = await applications.updateOne(
+        { _id: idObject, "endpoints._id": endpointId } as any,
+        { $set: { "endpoints.$": endpoint } }
+    );
+
+    return endpoint;
+}
