@@ -8,7 +8,7 @@ const getWorkflowMetadata = async (id: string): Promise<any> => {
     })
 
     if (lookup.blobs.length === 0) {
-        throw new Error(`Workflow ${id} not found`)
+        return null;
     }
 
     return lookup.blobs[0]
@@ -17,7 +17,9 @@ const getWorkflowMetadata = async (id: string): Promise<any> => {
 
 export const storeWorkflowDefinitionStr = async (id: string, workflow: string): Promise<void> => {
     const metadata = await getWorkflowMetadata(id)
-    await del(metadata.url)
+    if (metadata) {
+        await del(metadata.url)
+    }
     await put(`workflows/${id}.json`, workflow, { access: 'public', addRandomSuffix: false, cacheControlMaxAge: 0 })
 }
 
@@ -27,6 +29,9 @@ export const storeWorkflowDefinition = async (id: string, workflow: Workflow): P
 
 export const getWorkflowDefinition = async (id: string): Promise<any> => {
     const metadata = await getWorkflowMetadata(id)
+    if (!metadata) {
+        throw new Error(`Workflow ${id} not found`)
+    }
     const url = metadata.url
     const workflow = await fetch(url, {
         cache: 'no-cache'
