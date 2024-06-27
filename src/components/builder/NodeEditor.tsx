@@ -78,7 +78,7 @@ export function NodeEditor({node, onClose, onSaveNode}) {
         }
     }
 
-    const onCloseAndSave = useCallback(() => {
+    const onSave = useCallback(() => {
         onSaveNode({
             ...node,
             data: {
@@ -87,8 +87,12 @@ export function NodeEditor({node, onClose, onSaveNode}) {
                 func: code,
             }
         });
+    }, [node, code, onSaveNode])
+
+    const onCloseAndSave = useCallback(() => {
+        onSave();
         onClose();
-    }, [node, onClose, onSaveNode, name, code])
+    }, [node, onClose, onSave])
 
     return (
         <div className={"flex flex-col h-full w-full"}>
@@ -97,11 +101,14 @@ export function NodeEditor({node, onClose, onSaveNode}) {
                     <Button onClick={onClickClose} variant={"outline"} className={"p-0 h-6 w-6"}>
                         <XIcon className={"w-4 h-4"}/>
                     </Button>
-                    <DoubleClickTextInput
-                        value={name}
-                        onChange={setName}
-                        touched={touched}
-                    />
+                    <div className="flex-1">
+                        <DoubleClickTextInput
+                            value={name}
+                            onChange={setName}
+                            touched={touched}
+                        />
+                    </div>
+                    <Button variant="default" disabled={!touched} onClick={() => onSave()}>Guardar</Button>
                 </div>
                 <div className="flex-grow flex-1 relative overflow-hidden">
                     <Editor

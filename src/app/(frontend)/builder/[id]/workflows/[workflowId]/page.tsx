@@ -8,7 +8,7 @@ import ReactFlow, {
     getConnectedEdges,
     getOutgoers,
     Handle,
-    NodeProps,
+    NodeProps, OnNodesChange,
     Position,
     useEdgesState,
     useNodeId,
@@ -61,18 +61,13 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
     return (
         <>
             <Handle type="target" position={Position.Top} isConnectable={targetEdges == 0}/>
-            <Card className={"w-96"}>
+            <Card className={"w-96"} onDoubleClick={onEdit}>
                 <CardHeader>
                     <CardTitle className={"font-normal text-md"}>
-                        {props.data.name}
+                        <FileCode2 className={"w-5 h-5 inline relative -top-[2px] mr-1"}/>
+                        <span>{props.data.name}</span>
                     </CardTitle>
                 </CardHeader>
-                <CardFooter className={"flex flex-row justify-start space-x-2"}>
-                    <Button onClick={onEdit} size="sm" className={"flex flex-row space-x-2"}><FileCode2
-                        className={"w-5 h-5"}/>
-                        <div>Editar</div>
-                    </Button>
-                </CardFooter>
             </Card>
             <Handle
                 type="source"
@@ -89,9 +84,10 @@ export function EdgeContextMenu({
                                     left,
                                     right,
                                     bottom,
+                                    setEdges,
+                                    getEdges,
                                     ...props
                                 }) {
-    const {setEdges, getEdges} = useReactFlow();
 
     const onDisconnect = useCallback(() => {
         const edges = getEdges()
@@ -130,10 +126,10 @@ export function NodeContextMenu({
                                     left,
                                     right,
                                     bottom,
+                                    setEdges,
+                                    setNodes,
                                     ...props
                                 }) {
-    const {setEdges, setNodes} = useReactFlow();
-
     const onDelete = useCallback(
         () => {
             setNodes((nds) => nds.filter((n) => n.id !== node.id));
@@ -173,7 +169,7 @@ const nodeTypes = {
 export default function Page(props: { params: { id: string, workflowId: string } }) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const {getNodes, getEdges, fitView} = useReactFlow();
+    const {getNodes, getEdges} = useReactFlow();
     const reactFlowWrapper = useRef(null);
     const [edgeMenu, setEdgeMenu] = useState(null);
     const [nodeMenu, setNodeMenu] = useState(null);
