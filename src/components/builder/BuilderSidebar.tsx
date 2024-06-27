@@ -4,6 +4,7 @@ import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import Link from "next/link";
 import {Skeleton} from "@/components/ui/skeleton";
 import CreateEndpointDialog from "@/components/builder/CreateEndpointDialog";
+import CreateDatabaseDialog from "@/components/builder/CreateDatabaseDialog";
 
 export function BuilderSidebar({applicationId, workflows, endpoints, databases, isLoading}: {
     applicationId: string,
@@ -14,6 +15,7 @@ export function BuilderSidebar({applicationId, workflows, endpoints, databases, 
 }) {
     const [createWorkflowDialogOpen, setCreateWorkflowDialogOpen] = useState(false);
     const [createEndpointDialogOpen, setCreateEndpointDialogOpen] = useState(false);
+    const [createDatabaseDialogOpen, setCreateDatabaseDialogOpen] = useState(false);
     return (
         <div className={"flex flex-col w-64 border-r text-sm"}>
             <div className={"flex flex-col border-b "}>
@@ -98,14 +100,21 @@ export function BuilderSidebar({applicationId, workflows, endpoints, databases, 
                         <DatabaseZap className={"w-5 h-5"}/>
                         <span>Bases de datos</span>
                     </div>
-                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
+                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"} onClick={() => setCreateDatabaseDialogOpen(true)}/>
                 </div>
+                <CreateDatabaseDialog
+                    dialogOpen={createDatabaseDialogOpen}
+                    setDialogOpen={setCreateDatabaseDialogOpen}
+                    applicationId={applicationId}
+                />
                 {databases && databases!.map((database, i) => (
-                    <div
-                        key={database._id}
-                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                        <span>{database.name}</span>
-                    </div>
+                    <Link href={`/builder/${applicationId}/databases/${database._id}`} key={database._id}>
+                        <div
+                            key={database._id}
+                            className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                            <span>{database.name}</span>
+                        </div>
+                    </Link>
                 ))}
                 {databases && databases!.length === 0 && (
                     <div

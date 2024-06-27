@@ -112,10 +112,45 @@ export const editEndpoint = async (appId: string, endpointId: string, data: Part
         _id: endpointId
     } as Endpoint;
 
-    const result = await applications.updateOne(
+    await applications.updateOne(
         { _id: idObject, "endpoints._id": endpointId } as any,
         { $set: { "endpoints.$": endpoint } }
     );
 
     return endpoint;
+}
+
+export const addDatabase = async (appId: string, data: Partial<Database>): Promise<Database> => {
+    const db = await getDatabase();
+    const applications = db.collection<Application>(collectionName);
+    const idObject = new ObjectId(appId);
+    const id = new ObjectId().toHexString();
+    const database = {
+        ...data,
+        _id: id
+    } as Database;
+    console.log('database', database)
+    await applications.updateOne(
+        { _id: idObject } as any,
+        { $push: { databases: database } }
+    );
+
+    return database;
+}
+
+export const editDatabase = async (appId: string, databaseId: string, data: Partial<Database>): Promise<Database> => {
+    const db = await getDatabase();
+    const applications = db.collection<Application>(collectionName);
+    const idObject = new ObjectId(appId);
+    const database = {
+        ...data,
+        _id: databaseId
+    } as Database;
+
+    await applications.updateOne(
+        { _id: idObject, "databases._id": databaseId } as any,
+        { $set: { "databases.$": database } }
+    );
+
+    return database;
 }
