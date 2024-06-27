@@ -56,9 +56,9 @@ function CreateDatabaseDialogContent({
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className={"space-y-2"}>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Crear flujo de trabajo</AlertDialogTitle>
+                    <AlertDialogTitle>Agregar base de datos</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Completa los campos para crear un flujo de trabajo.
+                        Completa los campos para agregar una nueva base de datos.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <div className="grid gap-6">
