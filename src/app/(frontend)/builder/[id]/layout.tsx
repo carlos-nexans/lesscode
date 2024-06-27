@@ -4,10 +4,10 @@ import 'reactflow/dist/style.css';
 import {ReactFlowProvider} from "reactflow";
 import {EditingNodeProvider} from "@/components/builder/NodeEditor";
 import React from "react";
-import {BuilderSidebar} from "@/app/(frontend)/builder/[id]/workflows/[workflowId]/page";
 import {useQuery} from "@tanstack/react-query";
 import {getApplication} from "@/services/app";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
+import {BuilderSidebar} from "@/components/builder/BuilderSidebar";
 
 export default function Layout(props: {
     children: React.ReactNode,

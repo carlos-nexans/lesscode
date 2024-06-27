@@ -13,7 +13,6 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Button} from "@/components/ui/button";
-import {Sparkles} from "lucide-react";
 import {useMutation} from "@tanstack/react-query";
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";

@@ -85,3 +85,20 @@ export const addWorkflow = async (appId: string, data: Partial<Workflow>): Promi
 
     return workflow;
 }
+
+export const addEndpoint = async (appId: string, data: Partial<Endpoint>): Promise<Endpoint> => {
+    const db = await getDatabase();
+    const applications = db.collection<Application>(collectionName);
+    const idObject = new ObjectId(appId);
+    const id = new ObjectId().toHexString();
+    const endpoint = {
+        ...data,
+        _id: id
+    } as Endpoint;
+    await applications.updateOne(
+        { _id: idObject } as any,
+        { $push: { endpoints: endpoint } }
+    );
+
+    return endpoint;
+}

@@ -15,3 +15,14 @@ export const addWorkflow = async (id: string, data: any): Promise<{app: Applicat
     })
     return res.json()
 }
+
+export const addEndpoint = async (id: string, data: any): Promise<{app: Application}> => {
+    const res = await fetch(`/api/apps/${id}/endpoints`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    return res.json()
+}

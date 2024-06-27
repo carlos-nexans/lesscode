@@ -1,37 +1,31 @@
 "use client"
 
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ReactFlow, {
     addEdge,
     Background,
-    Controls, getConnectedEdges, getIncomers, getOutgoers,
+    Controls,
+    getConnectedEdges,
+    getOutgoers,
     Handle,
     NodeProps,
     Position,
-    useEdgesState, useNodeId,
-    useNodesState, useReactFlow, useStore
+    useEdgesState,
+    useNodeId,
+    useNodesState,
+    useReactFlow,
+    useStore
 } from 'reactflow';
 import {BackgroundVariant} from "@reactflow/background/dist/esm/types";
-import {DatabaseZap, FileCode2, PlugZap, PlusCircle, Trash2, Unlink, Workflow} from "lucide-react";
+import {FileCode2, PlusCircle, Trash2, Unlink} from "lucide-react";
 import ContentTop from "@/components/ContentTop";
 import {Card, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandItem,
-    CommandList,
-    CommandSeparator,
-} from "@/components/ui/command"
+import {Command, CommandGroup, CommandItem, CommandList,} from "@/components/ui/command"
 import {cn} from "@/lib/utils";
 import {NodeEditor, useEditingNode} from "@/components/builder/NodeEditor";
 import {useMutation, useQuery} from "@tanstack/react-query";
-import {Application} from "@/repository/apps";
-import {Skeleton} from "@/components/ui/skeleton";
-import {addWorkflow, getApplication} from "@/services/app";
-import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
-import Link from "next/link";
+import {getApplication} from "@/services/app";
 import {getWorkflowDefinition, saveWorkflowDefinition} from "@/services/workflows";
 import {estimatedHeight, getMostBottomPosition, reactFlowToWorkflow, workflowToReactFlow} from "@/lib/workflows";
 import {toast} from "sonner";
@@ -86,120 +80,6 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
                 isConnectable={sourceEdges == 0}
             />
         </>
-    )
-}
-
-export function BuilderSidebar({applicationId, workflows, endpoints, databases, isLoading}: {
-    applicationId: string,
-    workflows?: { _id?: string, name: string, description: string }[],
-    endpoints?: { _id?: string, method: string, pathPattern: string, workflow: string }[],
-    databases?: { _id?: string, name: string }[],
-    isLoading: boolean
-}) {
-    const [createWorkflowDialogOpen, setCreateWorkflowDialogOpen] = useState(false);
-    return (
-        <div className={"flex flex-col w-64 border-r text-sm"}>
-            <div className={"flex flex-col border-b "}>
-                <div className={"flex flex-row justify-between p-2 bg-accent"}>
-                    <div className={"flex flex-row space-x-2"}>
-                        <Workflow className={"w-5 h-5"}/>
-                        <span>Flujos de trabajo</span>
-                    </div>
-                    <PlusCircle onClick={() => setCreateWorkflowDialogOpen(true)}
-                                className={"w-5 h-5 hover:cursor-pointer"}/>
-                </div>
-                <CreateWorkflowDialog
-                    applicationId={applicationId}
-                    dialogOpen={createWorkflowDialogOpen}
-                    setDialogOpen={setCreateWorkflowDialogOpen}
-                />
-                {workflows && workflows!.map((workflow, i) => (
-                    <Link href={`/builder/${applicationId}/workflows/${workflow._id}`} key={workflow._id}>
-                        <div
-                            key={workflow._id}
-                            className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                            <span>{workflow.name}</span>
-                        </div>
-                    </Link>
-                ))}
-                {workflows && workflows!.length === 0 && (
-                    <div
-                        className={"flex flex-row space-x-2 p-2"}>
-                        <span>No hay flujos de trabajo</span>
-                    </div>
-                )}
-                {isLoading && (
-                    <>
-                        <div
-                            className={"flex flex-row space-x-2 p-2"}>
-                            <Skeleton className="brightness-90 w-full h-[20px] rounded-full"/>
-                        </div>
-                    </>
-                )}
-            </div>
-            <div className={"flex flex-col border-b "}>
-                <div className={"flex flex-row justify-between p-2 bg-accent"}>
-                    <div className={"flex flex-row space-x-2"}>
-                        <PlugZap className={"w-5 h-5"}/>
-                        <span>Endpoints</span>
-                    </div>
-                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
-                </div>
-                {endpoints && endpoints!.map((endpoint, i) => (
-                    <Link href={`/builder/${applicationId}/endpoints/${endpoint._id}`} key={endpoint._id}>
-                        <div
-                            key={endpoint._id}
-                            className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                            <span>{endpoint.method} {endpoint.pathPattern}</span>
-                        </div>
-                    </Link>
-                ))}
-                {endpoints && endpoints!.length === 0 && (
-                    <div
-                        className={"flex flex-row space-x-2 p-2"}>
-                        <span>No hay endpoints</span>
-                    </div>
-                )}
-                {isLoading && (
-                    <>
-                        <div
-                            className={"flex flex-row space-x-2 p-2"}>
-                            <Skeleton className="brightness-90 w-full h-[20px] rounded-full"/>
-                        </div>
-                    </>
-                )}
-            </div>
-            <div className={"flex flex-col border-b "}>
-                <div className={"flex flex-row justify-between p-2 bg-accent"}>
-                    <div className={"flex flex-row space-x-2"}>
-                        <DatabaseZap className={"w-5 h-5"}/>
-                        <span>Bases de datos</span>
-                    </div>
-                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
-                </div>
-                {databases && databases!.map((database, i) => (
-                    <div
-                        key={database._id}
-                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                        <span>{database.name}</span>
-                    </div>
-                ))}
-                {databases && databases!.length === 0 && (
-                    <div
-                        className={"flex flex-row space-x-2 p-2"}>
-                        <span>No hay bases de datos</span>
-                    </div>
-                )}
-                {isLoading && (
-                    <>
-                        <div
-                            className={"flex flex-row space-x-2 p-2"}>
-                            <Skeleton className="brightness-90 w-full h-[20px] rounded-full"/>
-                        </div>
-                    </>
-                )}
-            </div>
-        </div>
     )
 }
 
