@@ -33,9 +33,10 @@ import {addWorkflow, getApplication} from "@/services/app";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import Link from "next/link";
 import {getWorkflowDefinition, saveWorkflowDefinition} from "@/services/workflows";
-import {reactFlowToWorkflow, workflowToReactFlow} from "@/lib/workflows";
+import {estimatedHeight, getMostBottomPosition, reactFlowToWorkflow, workflowToReactFlow} from "@/lib/workflows";
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
+import {generateId} from "@/lib/id";
 
 
 export type FunctionNodeProps = {
@@ -201,16 +202,6 @@ export function BuilderSidebar({applicationId, workflows, endpoints, databases, 
         </div>
     )
 }
-
-const idGenerator = (prefix: string = 'generatedId-') => {
-    let id = 0;
-    return () => {
-        id += 1;
-        return `${prefix}${id}`;
-    }
-}
-
-const getId = idGenerator();
 
 export function EdgeContextMenu({
                                     edge,
@@ -389,16 +380,11 @@ export default function Page(props: { params: { id: string, workflowId: string }
     );
 
     const addNode = useCallback(() => {
-        const id = getId();
-        const mostBottomNode = nodes.reduce((acc, node) => {
-            if (node.position.y > acc.position.y) {
-                return node;
-            }
-            return acc;
-        }, {position: {x: 0, y: 0}});
+        const id = generateId();
+        const mostBottomNode = getMostBottomPosition(nodes);
 
-        const x = mostBottomNode.position.x;
-        const y = mostBottomNode.position.y + 200;
+        const x = mostBottomNode.x;
+        const y = mostBottomNode.y + estimatedHeight;
 
         const newNode = {
             id,
@@ -412,11 +398,9 @@ export default function Page(props: { params: { id: string, workflowId: string }
                 name: 'Nuevo nodo',
                 func: "async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"
             },
-            origin: [0.5, 0.0],
         };
 
         setNodes((nds) => nds.concat(newNode));
-        setTimeout(() => fitView(), 0)
     }, [nodes])
 
     const onEdgeContextMenu = useCallback(

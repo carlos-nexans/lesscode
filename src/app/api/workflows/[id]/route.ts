@@ -8,8 +8,8 @@ export const GET = async function (req, { params }) {
 
 export const PUT = async function (req, { params }) {
     const id = params.id;
-    const data = req.body;
-    await storeWorkflowDefinitionStr(id, data);
+    const data = await req.json();
+    await storeWorkflowDefinitionStr(id, JSON.stringify(data));
     const workflow = await getWorkflowDefinition(id);
     return Response.json({workflow})
 }

@@ -1,6 +1,6 @@
 import {Node, Edge} from "reactflow";
 
-const estimatedHeight = 200;
+export const estimatedHeight = 200;
 
 export const workflowToReactFlow = (root: any): { nodes: Node[], edges: Edge[] } => {
     const nodes: Node[] = [];
@@ -56,4 +56,20 @@ export const reactFlowToWorkflow = (nodes: Node[], edges: Edge[]): any => {
     }
 
     return root;
+}
+
+export const getMostBottomPosition = (nodes: Node[]): {x: number, y:number} => {
+    let mostBottom:{x: number, y:number} = {x:0, y:0};
+    let mostBottomY = 0;
+    for (const node of nodes) {
+        if (node.position.y > mostBottomY) {
+            mostBottom = {
+                x: node.position.x,
+                y: node.position.y
+            };
+            mostBottomY = node.position.y;
+        }
+    }
+
+    return mostBottom;
 }
