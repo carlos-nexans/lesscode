@@ -1,8 +1,13 @@
 import {Workflow} from "executable-workflows";
 import {put, list} from "@vercel/blob";
 
+
+export const storeWorkflowDefinitionStr = async (id: string, workflow: string): Promise<void> => {
+    await put(`workflows/${id}.json`, workflow, { access: 'public' })
+}
+
 export const storeWorkflowDefinition = async (id: string, workflow: Workflow): Promise<void> => {
-    await put(`workflows/${id}.json`, workflow.dump(), { access: 'public' })
+    await storeWorkflowDefinitionStr(id, workflow.dump())
 }
 
 export const getWorkflowDefinition = async (id: string): Promise<any> => {

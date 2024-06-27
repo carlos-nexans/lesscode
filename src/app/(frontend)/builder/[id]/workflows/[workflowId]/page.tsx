@@ -1,6 +1,6 @@
 "use client"
 
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import ReactFlow, {
     addEdge,
     Background,
@@ -26,13 +26,16 @@ import {
 } from "@/components/ui/command"
 import {cn} from "@/lib/utils";
 import {NodeEditor, useEditingNode} from "@/components/builder/NodeEditor";
-import {useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery} from "@tanstack/react-query";
 import {Application} from "@/repository/apps";
 import {Skeleton} from "@/components/ui/skeleton";
-import {getApplication} from "@/services/app";
+import {addWorkflow, getApplication} from "@/services/app";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import Link from "next/link";
-import {getWorkflowDefinition} from "@/services/workflows";
+import {getWorkflowDefinition, saveWorkflowDefinition} from "@/services/workflows";
+import {reactFlowToWorkflow, workflowToReactFlow} from "@/lib/workflows";
+import {toast} from "sonner";
+import {queryClient} from "@/config/tanstack";
 
 
 export type FunctionNodeProps = {
@@ -84,43 +87,6 @@ function FunctionNode(props: NodeProps<FunctionNodeProps>) {
         </>
     )
 }
-
-// {"type":"SequentialGroup","children":[{"type":"FunctionNode","func":"async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"}]}
-
-const initialNodes = [
-    {
-        id: '1', position: {x: 0, y: 0},
-        type: 'FunctionNode',
-        data: {
-            id: '1',
-            name: 'Buscar en base de datos',
-            func: "async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"
-        }
-    },
-    {
-        id: '2', position: {x: 0, y: 200},
-        type: 'FunctionNode',
-        data: {
-            id: '1',
-            name: 'Calcular stock resultante',
-            func: "async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"
-        }
-    },
-    {
-        id: '3', position: {x: 0, y: 400},
-        type: 'FunctionNode',
-        data: {
-            id: '1',
-            name: 'Guardar stock resultante en base de datos',
-            func: "async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"
-        }
-    },
-];
-
-const initialEdges = [
-    {id: 'e1-2', source: '1', target: '2', animated: true},
-    {id: 'e2-3', source: '2', target: '3', animated: true},
-];
 
 export function BuilderSidebar({applicationId, workflows, endpoints, databases, isLoading}: {
     applicationId: string,
@@ -179,11 +145,13 @@ export function BuilderSidebar({applicationId, workflows, endpoints, databases, 
                     <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}/>
                 </div>
                 {endpoints && endpoints!.map((endpoint, i) => (
-                    <div
-                        key={endpoint._id}
-                        className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
-                        <span>{endpoint.method} {endpoint.pathPattern}</span>
-                    </div>
+                    <Link href={`/builder/${applicationId}/endpoints/${endpoint._id}`} key={endpoint._id}>
+                        <div
+                            key={endpoint._id}
+                            className={"flex flex-row space-x-2 p-2 hover:text-primary-foreground hover:bg-primary hover:cursor-pointer"}>
+                            <span>{endpoint.method} {endpoint.pathPattern}</span>
+                        </div>
+                    </Link>
                 ))}
                 {endpoints && endpoints!.length === 0 && (
                     <div
@@ -332,8 +300,8 @@ const nodeTypes = {
 }
 
 export default function Page(props: { params: { id: string, workflowId: string } }) {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [nodes, setNodes, onNodesChange] = useNodesState([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const {getNodes, getEdges, fitView} = useReactFlow();
     const reactFlowWrapper = useRef(null);
     const [edgeMenu, setEdgeMenu] = useState(null);
@@ -341,30 +309,53 @@ export default function Page(props: { params: { id: string, workflowId: string }
     const {editingNode, setEditingNode} = useEditingNode();
     const ref = useRef(null);
 
-    const {data, isLoading} = useQuery({
+    const {data: applicationData, isLoading} = useQuery({
         queryKey: [`app-${props.params.id}`],
         queryFn: () => getApplication(props.params.id)
     })
+
     const {
         data: workflowData,
-        isLoading: workflowIsLoading
     } = useQuery({
         queryKey: [`workflow-${props.params.workflowId}`],
         queryFn: () => getWorkflowDefinition(props.params.workflowId)
     })
 
-    const routes = useMemo(() => {
-        if (!data) return []
+    const saveWorkflowMutation = useMutation({
+        mutationFn: data => saveWorkflowDefinition(props.params.workflowId, data),
+        onSuccess: () => {
+            toast("Flujo guardado correctamente.")
+            queryClient.invalidateQueries({queryKey: [`workflow-${props.params.workflowId}`]})
+        },
+        onError: (error) => {
+            toast.message(error.message)
+        }
+    })
 
-        const workflow = data.app.workflows.find((w) => w._id === props.params.workflowId)!;
+    const saveWorkflow = useCallback(() => {
+        const workflow = reactFlowToWorkflow(nodes, edges)
+        saveWorkflowMutation.mutate(workflow)
+    }, [nodes, edges])
+
+    useEffect(() => {
+        if (!workflowData) return
+        const {nodes, edges} = workflowToReactFlow(workflowData.workflow)
+        setNodes(nodes)
+        setEdges(edges)
+    }, [workflowData])
+
+    const routes = useMemo(() => {
+        if (!applicationData) return []
+
+        const workflow = applicationData.app.workflows.find((w) => w._id === props.params.workflowId)!;
 
         return [
             {name: "Aplicaciones", href: "/apps"},
-            {name: data.app.name, href: `/apps/${data.app._id}`},
+            {name: applicationData.app.name, href: `/apps/${applicationData.app._id}`},
             {name: "Flujos de trabajo"},
             {name: workflow.name},
         ]
-    }, [data])
+    }, [applicationData])
 
     const onConnect = useCallback(
         (params) => {
@@ -493,7 +484,7 @@ export default function Page(props: { params: { id: string, workflowId: string }
                 <div className="flex flex-row justify-between">
                     <ContentTop routes={routes} isLoading={isLoading}/>
                     <div className={"flex flex-row space-x-2"}>
-                        <Button variant="default">Guardar</Button>
+                        <Button variant="default" onClick={() => saveWorkflow()}>Guardar</Button>
                         <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar
                             nodo</Button>
                     </div>
