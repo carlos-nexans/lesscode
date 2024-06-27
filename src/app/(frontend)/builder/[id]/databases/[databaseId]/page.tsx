@@ -65,7 +65,7 @@ export default function Page(props: { params: { id: string, databaseId: string }
         return [
             {name: "Aplicaciones", href: "/apps"},
             {name: data.app.name, href: `/apps/${data.app._id}`},
-            {name: "Endpoints"},
+            {name: "Bases de datos"},
             {
                 name: database?.name,
                 href: `/apps/${data.app._id}/endpoints/${database?._id}`
