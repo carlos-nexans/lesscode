@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
+import LoadingBar from "@/components/LoadingBar";
 
 export default function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center flex justify-between border-b bg-background px-4 py-2 flex-row">
+      <LoadingBar />
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
