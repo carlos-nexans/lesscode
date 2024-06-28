@@ -68,7 +68,7 @@ export function NodeEditor({node, onClose, onSaveNode}) {
     const [name, setName] = useState(node.data.name);
     const [code, setCode] = useState(node.data.func);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const touched = name !== node.data.name || code !== node.data.func;
+    const [touched, setTouched] = useState(false);
 
     const onClickClose = () => {
         if (touched) {
@@ -87,12 +87,13 @@ export function NodeEditor({node, onClose, onSaveNode}) {
                 func: code,
             }
         });
-    }, [node, code, onSaveNode])
+        setTouched(false);
+    }, [name, node, code, onSaveNode])
 
     const onCloseAndSave = useCallback(() => {
         onSave();
         onClose();
-    }, [node, onClose, onSave])
+    }, [onClose, onSave])
 
     return (
         <div className={"flex flex-col h-full w-full"}>
@@ -104,7 +105,10 @@ export function NodeEditor({node, onClose, onSaveNode}) {
                     <div className="flex-1">
                         <DoubleClickTextInput
                             value={name}
-                            onChange={setName}
+                            onChange={value => {
+                                setName(value);
+                                setTouched(true)
+                            }}
                             touched={touched}
                         />
                     </div>
@@ -114,7 +118,10 @@ export function NodeEditor({node, onClose, onSaveNode}) {
                     <Editor
                         defaultLanguage="javascript"
                         value={code}
-                        onChange={setCode}
+                        onChange={(value) => {
+                            setCode(value)
+                            setTouched(true)
+                        }}
                     />
                 </div>
                 <AlertDialogContent>
@@ -127,9 +134,9 @@ export function NodeEditor({node, onClose, onSaveNode}) {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                            <Button variant={"outline"} onClick={onClose}>
-                                Salir
-                            </Button>
+                        <Button variant={"outline"} onClick={onClose}>
+                            Salir
+                        </Button>
                         <Button variant={"default"} onClick={onCloseAndSave}>
                             Guardar y salir
                         </Button>

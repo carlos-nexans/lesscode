@@ -27,7 +27,13 @@ import {NodeEditor, useEditingNode} from "@/components/builder/NodeEditor";
 import {useMutation, useQuery} from "@tanstack/react-query";
 import {getApplication} from "@/services/app";
 import {getWorkflowDefinition, saveWorkflowDefinition} from "@/services/workflows";
-import {estimatedHeight, getMostBottomPosition, reactFlowToWorkflow, workflowToReactFlow} from "@/lib/workflows";
+import {
+    defaultCode,
+    estimatedHeight,
+    getMostBottomPosition,
+    reactFlowToWorkflow,
+    workflowToReactFlow
+} from "@/lib/workflows";
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import {generateId} from "@/lib/id";
@@ -272,7 +278,7 @@ export default function Page(props: { params: { id: string, workflowId: string }
             data: {
                 id: id,
                 name: 'Nuevo nodo',
-                func: "async function customFunction(context) {\n      console.log(\"Executing custom function\", context);\n    }"
+                func: defaultCode
             },
         };
 
@@ -369,8 +375,10 @@ export default function Page(props: { params: { id: string, workflowId: string }
                     >
                         <Controls/>
                         <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
-                        {edgeMenu && <EdgeContextMenu onClick={closeContextMenu} {...edgeMenu} />}
-                        {nodeMenu && <NodeContextMenu onClick={closeContextMenu} {...nodeMenu} />}
+                        {edgeMenu && <EdgeContextMenu setNodes={setNodes}
+                                                      setEdges={setEdges} getEdges={getEdges} onClick={closeContextMenu} {...edgeMenu} />}
+                        {nodeMenu && <NodeContextMenu setNodes={setNodes}
+                                                      setEdges={setEdges} onClick={closeContextMenu} {...nodeMenu} />}
                     </ReactFlow>
                 </div>
             </div>

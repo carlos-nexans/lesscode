@@ -73,3 +73,9 @@ export const getMostBottomPosition = (nodes: Node[]): { x: number, y: number } =
 
     return mostBottom;
 }
+
+export const defaultCode = `
+async function customFunction(context) {
+  console.log("Executing custom function", context);
+}
+`

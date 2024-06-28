@@ -38,6 +38,36 @@ function extractPathParameters(path, pathPattern) {
     return params;
 }
 
+async function databaseConnection(type: string, connectionStr: string): any {
+    if (type === 'MongoDB') {
+        const { MongoClient } = require('mongodb');
+        const client = new MongoClient(connectionStr);
+        await client.connect();
+        return {
+            client,
+            disconnect: async () => {
+                await client.close();
+            }
+        }
+    }
+
+    if (type === 'PostgreSQL') {
+        const { Client } = require('pg');
+        const client = new Client({
+            connectionString: connectionStr
+        });
+        await client.connect();
+        return {
+            client,
+            disconnect: async () => {
+                await client.end();
+            }
+        }
+    }
+
+    throw new Error('Unsupported database type');
+}
+
 async function handler(req, { params }) {
     const { segments } = params;
     const applicationId = segments[0];
@@ -64,10 +94,21 @@ async function handler(req, { params }) {
     const endpoint = matches[0]
     const endpointParams = extractPathParameters(endpointPath, endpoint.pathPattern)
 
+    const databases = {}
+    for (const db of application?.databases) {
+        databases[db.name] = await databaseConnection(db.type, db.connectionStr)
+    }
+
     const context = {
         request: {
             path: endpointPath,
             params: endpointParams,
+            async json() {
+                return req.json()
+            },
+            async text() {
+                return req.text()
+            }
         },
         response: {
             body: {},
@@ -75,12 +116,18 @@ async function handler(req, { params }) {
             headers: {
                 'Content-Type': 'application/json'
             }
-        }
+        },
+        databases,
     }
 
     const workflowDefinition = await getWorkflowDefinitionString(endpoint.workflow)
     const workflow = Workflow.load(workflowDefinition)
     await workflow.run(context)
+
+    for (const db of Object.values(databases)) {
+        //await db.disconnect()
+    }
+
     return new Response(JSON.stringify(context.response.body), {
         status: context.response.status,
         headers: context.response.headers,
