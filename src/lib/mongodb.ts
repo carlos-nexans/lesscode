@@ -29,7 +29,7 @@ export default async function connectToDatabase(): Promise<{ db: Db, client: Mon
     // Connect to cluster
     let client = new MongoClient(MONGODB_URI);
     console.log('Connecting to mongodb')
-    await client.connect();
+    // await client.connect();
     console.log('Connected to mongodb')
     let db = client.db(MONGODB_DB);
     console.log('Selected database')
