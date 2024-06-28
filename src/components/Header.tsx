@@ -53,9 +53,9 @@ export default function Header() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>Mi cuenta</DropdownMenuItem>
-          <DropdownMenuItem>Ayuda</DropdownMenuItem>
-          <DropdownMenuItem>Salir</DropdownMenuItem>
+          <Link href={"/api/auth/logout"}>
+            <DropdownMenuItem>Salir</DropdownMenuItem>
+          </Link>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

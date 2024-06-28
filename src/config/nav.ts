@@ -11,9 +11,4 @@ export const navOptions = [
         Icon: UsersIcon,
         href: "/users",
     },
-    {
-        name: "Configuración",
-        Icon: Settings,
-        href: "/settings",
-    },
 ]
