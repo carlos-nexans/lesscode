@@ -125,7 +125,7 @@ async function handler(req, { params }) {
     await workflow.run(context)
 
     for (const db of Object.values(databases)) {
-        //await db.disconnect()
+        await db.disconnect()
     }
 
     return new Response(JSON.stringify(context.response.body), {

@@ -44,7 +44,7 @@ const createApplication = async (data) => {
     return res.json()
 }
 
-export function AppCard({id, name, description}) {
+function AppCard({id, name, description}) {
     return (
         <Card className="w-full">
             <CardHeader className="pb-3">
