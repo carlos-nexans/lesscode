@@ -14,6 +14,15 @@ const nextConfig = {
         // !! WARN !!
         ignoreBuildErrors: true,
     },
+    redirects: async () => {
+        return [
+            {
+                source: '/',
+                destination: '/app',
+                permanent: true,
+            },
+        ];
+    }
 };
 
 export default nextConfig;
