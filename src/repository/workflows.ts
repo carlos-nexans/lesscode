@@ -38,3 +38,15 @@ export const getWorkflowDefinition = async (id: string): Promise<any> => {
     });
     return workflow.json()
 }
+
+export const getWorkflowDefinitionString = async (id: string): Promise<any> => {
+    const metadata = await getWorkflowMetadata(id)
+    if (!metadata) {
+        throw new Error(`Workflow ${id} not found`)
+    }
+    const url = metadata.url
+    const workflow = await fetch(url, {
+        cache: 'no-cache'
+    });
+    return workflow.text()
+}
