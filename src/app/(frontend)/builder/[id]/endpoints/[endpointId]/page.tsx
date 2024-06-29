@@ -15,6 +15,7 @@ import {editEndpoint, getApplication} from "@/services/app";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
+import CopyableInput from "@/components/CopyableInput";
 
 const formSchema = z.object({
     pathPattern: z.string({
@@ -105,6 +106,13 @@ export default function Page(props: { params: { id: string, endpointId: string }
                                             </FormItem>
                                         )}
                                     />
+                                    <FormItem>
+                                        <FormLabel>Previsualización de URL</FormLabel>
+                                        <CopyableInput type="text" value={`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps${form.watch('pathPattern')}`} disabled />
+                                        <FormControl>
+                                        </FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
                                     <FormField
                                         control={form.control}
                                         name="method"
@@ -150,7 +158,6 @@ export default function Page(props: { params: { id: string, endpointId: string }
                                                 <FormMessage/>
                                             </FormItem>
                                         )}
-
                                     />
                                 </div>
                     </CardContent>
