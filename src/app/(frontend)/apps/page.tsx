@@ -12,6 +12,7 @@ import {z} from "zod";
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import {CreateAppDialog} from "@/components/CreateAppDialog";
+import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
 
 const getApplications = async () => {
     const res = await fetch('/api/apps')
@@ -67,7 +68,7 @@ function EmptyState({ onCreate }) {
 
 const routes = [{name: "Aplicaciones", href: "/apps"}]
 
-export default function Page() {
+export default withPageAuthRequired(function Page() {
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const {data} = useQuery({queryKey: ['apps'], queryFn: getApplications})
     const createApp = useMutation({
@@ -114,4 +115,6 @@ export default function Page() {
             </div>
         </div>
     );
-}
+}, {
+    returnTo: '/apps'
+})

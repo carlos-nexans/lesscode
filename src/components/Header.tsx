@@ -1,6 +1,8 @@
+"use client"
+
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import {PanelLeft, Puzzle, Search} from "lucide-react";
+import {Loader2Icon, PanelLeft, Puzzle, Search} from "lucide-react";
 import MobileSidebar from "@/components/MobileSidebar";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,8 +16,10 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import LoadingBar from "@/components/LoadingBar";
+import {useUser} from "@auth0/nextjs-auth0/client";
 
 export default function Header() {
+  const { user, error, isLoading } = useUser();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center flex justify-between border-b bg-background px-4 py-2 flex-row">
       <LoadingBar />
@@ -47,9 +51,12 @@ export default function Header() {
             size="icon"
             className="overflow-hidden rounded-full"
           >
-            <Avatar>
+            {user && (<Avatar>
               <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
+            </Avatar>)}
+            {isLoading && (
+                <Loader2Icon className="h-5 w-5 animate-spin" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

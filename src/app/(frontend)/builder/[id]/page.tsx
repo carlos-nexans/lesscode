@@ -8,8 +8,9 @@ import {Button} from "@/components/ui/button";
 import {Sparkles} from "lucide-react";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import {Skeleton} from "@/components/ui/skeleton";
+import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
 
-export default function Page(props: {
+export default withPageAuthRequired(function Page(props: {
     params: {
         id: string
     }
@@ -76,4 +77,6 @@ export default function Page(props: {
             )}
         </>
     )
-}
+}, {
+    returnTo: '/apps',
+})

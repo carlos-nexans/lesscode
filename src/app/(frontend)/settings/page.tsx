@@ -8,8 +8,9 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {withPageAuthRequired} from "@auth0/nextjs-auth0";
 
-export default function Page() {
+export default withPageAuthRequired(function Page() {
     return (
         <Card>
             <CardHeader>
@@ -28,4 +29,6 @@ export default function Page() {
             </CardFooter>
         </Card>
     )
-}
+}, {
+    returnTo: '/settings',
+})

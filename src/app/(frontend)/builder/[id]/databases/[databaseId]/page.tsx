@@ -17,6 +17,7 @@ import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import {Textarea} from "@/components/ui/textarea";
 import SecretInput from "@/components/SecretInput";
+import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
 
 const formSchema = z.object({
     name: z.string({
@@ -33,7 +34,7 @@ const formSchema = z.object({
     })
 })
 
-export default function Page(props: { params: { id: string, databaseId: string } }) {
+export default withPageAuthRequired(function Page(props: { params: { id: string, databaseId: string } }) {
     const {data, isLoading} = useQuery({
         queryKey: [`app-${props.params.id}`],
         queryFn: () => getApplication(props.params.id)
@@ -172,4 +173,6 @@ export default function Page(props: { params: { id: string, databaseId: string }
             </div>
         </>
     )
-}
+}, {
+  returnTo: '/apps',
+})

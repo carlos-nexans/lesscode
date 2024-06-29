@@ -37,6 +37,7 @@ import {
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import {generateId} from "@/lib/id";
+import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
 
 
 export type FunctionNodeProps = {
@@ -172,7 +173,7 @@ const nodeTypes = {
     'FunctionNode': FunctionNode
 }
 
-export default function Page(props: { params: { id: string, workflowId: string } }) {
+export default withPageAuthRequired(function Page(props: { params: { id: string, workflowId: string } }) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const {getNodes, getEdges} = useReactFlow();
@@ -384,4 +385,6 @@ export default function Page(props: { params: { id: string, workflowId: string }
             </div>
         </>
     );
-}
+}, {
+    returnTo: '/apps',
+})

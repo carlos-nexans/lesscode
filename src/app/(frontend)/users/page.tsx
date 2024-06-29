@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/table"
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
@@ -45,11 +44,9 @@ import {useMutation, useQuery} from "@tanstack/react-query";
 import {queryClient} from "@/config/tanstack";
 import {toast} from "sonner";
 import React from "react";
-import {Label} from "@/components/ui/label";
 import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
 import {useForm} from "react-hook-form";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {
@@ -59,6 +56,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
 
 
 const routes = [{name: "Usuarios", href: "/users"}]
@@ -196,7 +194,7 @@ function CreateUserDialog({
     )
 }
 
-export default function Page() {
+export default withPageAuthRequired(function Page() {
     const [dialogOpen, setDialogOpen] = React.useState(false)
     const {data} = useQuery({queryKey: ['users'], queryFn: getUsers})
 
@@ -322,4 +320,6 @@ export default function Page() {
             </Card>
         </div>
     )
-}
+}, {
+    returnTo: '/users'
+})

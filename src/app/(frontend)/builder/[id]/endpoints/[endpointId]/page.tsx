@@ -16,6 +16,7 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import CopyableInput from "@/components/CopyableInput";
+import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
 
 const formSchema = z.object({
     pathPattern: z.string({
@@ -35,7 +36,7 @@ const formSchema = z.object({
     }),
 })
 
-export default function Page(props: { params: { id: string, endpointId: string } }) {
+export default withPageAuthRequired(function Page(props: { params: { id: string, endpointId: string } }) {
     const {data, isLoading} = useQuery({queryKey: [`app-${props.params.id}`], queryFn: () => getApplication(props.params.id)})
 
     const endpoint = useMemo(() => {
@@ -170,4 +171,6 @@ export default function Page(props: { params: { id: string, endpointId: string }
             </div>
         </>
     )
-}
+}, {
+    returnTo: '/apps',
+})
