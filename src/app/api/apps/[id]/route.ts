@@ -1,4 +1,4 @@
-import {getApplicationById} from "@/repository/apps";
+import {getApplicationById, updateApplication} from "@/repository/apps";
 
 export const GET = async function (req, { params }) {
     const id = params.id;
@@ -10,5 +10,12 @@ export const GET = async function (req, { params }) {
         });
     }
 
+    return Response.json({app})
+}
+
+export const PATCH = async function (req, { params }) {
+    const id = params.id;
+    const data = await req.json()
+    const app = await updateApplication(id, data);
     return Response.json({app})
 }

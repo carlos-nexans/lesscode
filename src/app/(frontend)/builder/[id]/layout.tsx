@@ -20,6 +20,7 @@ export default function Layout(props: {
         <div className={"flex flex-row flex-1"}>
             <BuilderSidebar
                 applicationId={props.params.id}
+                application={data?.app}
                 workflows={data?.app?.workflows}
                 endpoints={data?.app?.endpoints}
                 databases={data?.app?.databases}

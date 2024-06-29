@@ -1,13 +1,15 @@
 import React, {useState} from "react";
-import {DatabaseZap, PlugZap, PlusCircle, Workflow} from "lucide-react";
+import {DatabaseZap, Package, PackageOpen, PlugZap, PlusCircle, Workflow} from "lucide-react";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import Link from "next/link";
 import {Skeleton} from "@/components/ui/skeleton";
 import CreateEndpointDialog from "@/components/builder/CreateEndpointDialog";
 import CreateDatabaseDialog from "@/components/builder/CreateDatabaseDialog";
+import {EditAppDialog} from "@/components/EditAppDialog";
 
-export function BuilderSidebar({applicationId, workflows, endpoints, databases, isLoading}: {
+export function BuilderSidebar({application, applicationId, workflows, endpoints, databases, isLoading}: {
     applicationId: string,
+    application?: { _id: string, name: string, description: string },
     workflows?: { _id?: string, name: string, description: string }[],
     endpoints?: { _id?: string, method: string, pathPattern: string, workflow: string }[],
     databases?: { _id?: string, name: string }[],
@@ -16,8 +18,18 @@ export function BuilderSidebar({applicationId, workflows, endpoints, databases, 
     const [createWorkflowDialogOpen, setCreateWorkflowDialogOpen] = useState(false);
     const [createEndpointDialogOpen, setCreateEndpointDialogOpen] = useState(false);
     const [createDatabaseDialogOpen, setCreateDatabaseDialogOpen] = useState(false);
+    const [editAppDialogOpen, setEditAppDialogOpen] = useState(false);
     return (
         <div className={"flex flex-col w-64 border-r text-sm"}>
+            <div className={"flex flex-col border-b "}>
+                <div className={"flex flex-row justify-between p-2 bg-accent hover:bg-primary hover:text-primary-foreground hover:cursor-pointer"} onClick={() => setEditAppDialogOpen(true)}>
+                    <div className={"flex flex-row space-x-2"}>
+                        <Package className={"w-4 h-4"}/>
+                        <span>Información de app</span>
+                    </div>
+                </div>
+                <EditAppDialog application={application} setDialogOpen={setEditAppDialogOpen} dialogOpen={editAppDialogOpen}/>
+            </div>
             <div className={"flex flex-col border-b "}>
                 <div className={"flex flex-row justify-between p-2 bg-accent"}>
                     <div className={"flex flex-row space-x-2"}>

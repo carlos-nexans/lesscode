@@ -63,6 +63,25 @@ export const getApplicationById = async (id: string): Promise<Application | null
     return applications.findOne({ _id: idObject } as any);
 }
 
+// patch only the fields that are present in the data object
+export const updateApplication = async (id: string, data: Partial<Application>): Promise<Application> => {
+    const db = await getDatabase();
+    const applications = db.collection<Application>(collectionName);
+    const idObject = new ObjectId(id);
+    const subset = Object.keys(data).reduce((acc, key) => {
+        if (['name', 'description'].includes(key) && data[key] !== undefined) {
+            acc[key] = data[key];
+        }
+        return acc;
+    }, {} as Partial<Application>);
+    await applications.updateOne(
+        { _id: idObject } as any,
+        { $set: subset }
+    );
+
+    return getApplicationById(id)!;
+}
+
 export const getApplications = async (): Promise<Application[]> => {
     const db = await getDatabase();
     const applications = db.collection<Application>(collectionName);

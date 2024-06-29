@@ -5,6 +5,17 @@ export const getApplication = async (id): Promise<{app: Application}> => {
     return res.json()
 }
 
+export const patchApplication = async (id: string, data: any): Promise<{app: Application}> => {
+    const res = await fetch(`/api/apps/${id}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    return res.json()
+}
+
 export const addWorkflow = async (id: string, data: any): Promise<{app: Application}> => {
     const res = await fetch(`/api/apps/${id}/workflows`, {
         method: 'POST',
