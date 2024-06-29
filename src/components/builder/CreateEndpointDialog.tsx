@@ -19,6 +19,7 @@ import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import {addEndpoint, addWorkflow, getApplication} from "@/services/app";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import CopyableInput from "@/components/CopyableInput";
 
 const formSchema = z.object({
     pathPattern: z.string({
@@ -58,6 +59,7 @@ function CreateWorkflowDialogContent({
         onClose()
     }
 
+    let urlPrev = form.watch('pathPattern') ? `${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps${form.watch('pathPattern')}` : undefined;
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className={"space-y-2"}>
@@ -81,6 +83,13 @@ function CreateWorkflowDialogContent({
                             </FormItem>
                         )}
                     />
+                    <FormItem>
+                        <FormLabel>Previsualización de URL</FormLabel>
+                        <CopyableInput type="text" value={urlPrev} disabled placeholder={"Escribe el patrón para previsualizar la URL"} />
+                        <FormControl>
+                        </FormControl>
+                        <FormMessage/>
+                    </FormItem>
                     <FormField
                         control={form.control}
                         name="method"

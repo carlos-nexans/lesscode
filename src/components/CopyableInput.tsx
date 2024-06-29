@@ -17,15 +17,18 @@ export default function CopyableInput(props: InputProps) {
             <Input
                 {...props}
             />
-            <Button
-                type="button"
-                size={"xs"}
-                variant={"secondary"}
-                className="absolute inset-y-0 flex items-center px-3 right-1 top-1 border"
-                onClick={onCopy}
-            >
-                {copied ? <CheckIcon size={16}/> : "Copy"}
-            </Button>
+            {props.value && (
+
+                <Button
+                    type="button"
+                    size={"xs"}
+                    variant={"secondary"}
+                    className="absolute inset-y-0 flex items-center px-3 right-1 top-1 border"
+                    onClick={onCopy}
+                >
+                    {copied ? <CheckIcon size={16}/> : "Copy"}
+                </Button>
+            )}
         </div>
     )
 }
