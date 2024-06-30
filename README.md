@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+```markdown
+# Proyecto Next.js
 
-## Getting Started
+Este es un proyecto de Next.js inicializado con create-next-app.
 
-First, run the development server:
+## Descarga del Proyecto
+
+Para descargar el proyecto, clona el repositorio desde GitHub:
+
+```bash
+git clone https://github.com/cdgn-coding/lesscode.git
+```
+
+## Pre-requisitos
+
+Para ejecutar este proyecto, necesitas tener instalados los siguientes componentes:
+
+- Node.js
+- MongoDB
+
+## Instalación de Dependencias
+
+Instala las dependencias necesarias utilizando npm, yarn, pnpm o bun:
+
+```bash
+npm install
+# o
+yarn install
+# o
+pnpm install
+# o
+bun install
+```
+
+## Levantar MongoDB en Local con Docker
+
+Puedes levantar una instancia de MongoDB en tu entorno local usando Docker:
+
+```bash
+docker run --name mongodb -d -p 27017:27017 mongo
+```
+
+## Levantar Vercel Blob en Local con Docker
+
+Levanta Vercel Blob en tu entorno local utilizando Docker:
+
+```bash
+docker run --name vercel-blob -d -p 3001:3001 vercel-blob-server
+```
+
+## Configurar Variables de Entorno
+
+Configura las siguientes variables de entorno en un archivo `.env.local` en la raíz del proyecto:
+
+```
+AUTH0_SECRET=
+AUTH0_BASE_URL=
+AUTH0_ISSUER_BASE_URL=
+AUTH0_CLIENT_ID=
+AUTH0_CLIENT_SECRET=
+AUTH0_DOMAIN=
+
+MONGODB_URI=
+MONGODB_DB=
+
+BLOB_READ_WRITE_TOKEN=
+
+NEXT_PUBLIC_AUTH0_BASE_URL=
+```
+
+## Cómo Correr el Proyecto
+
+Primero, ejecuta el servidor de desarrollo:
 
 ```bash
 npm run dev
-# or
+# o
 yarn dev
-# or
+# o
 pnpm dev
-# or
+# o
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) con tu navegador para ver el resultado.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Puedes comenzar a editar la página modificando `app/page.tsx`. La página se actualizará automáticamente a medida que edites el archivo.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Más Información
 
-## Learn More
+Para aprender más sobre Next.js, consulta los siguientes recursos:
 
-To learn more about Next.js, take a look at the following resources:
+- [Documentación de Next.js](https://nextjs.org/docs) - Aprende sobre las características y la API de Next.js.
+- [Aprende Next.js](https://nextjs.org/learn) - Un tutorial interactivo de Next.js.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+También puedes revisar el [repositorio de Next.js en GitHub](https://github.com/vercel/next.js) - ¡Tus comentarios y contribuciones son bienvenidos!
