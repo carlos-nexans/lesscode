@@ -41,6 +41,7 @@ const formSchema = z.object({
 })
 
 function CreateWorkflowDialogContent({
+    applicationId,
     onClose,
     onCreate,
     workflows
@@ -59,7 +60,7 @@ function CreateWorkflowDialogContent({
         onClose()
     }
 
-    let urlPrev = form.watch('pathPattern') ? `${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps${form.watch('pathPattern')}` : undefined;
+    let urlPrev = form.watch('pathPattern') ? `${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps/${applicationId}${form.watch('pathPattern')}` : undefined;
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className={"space-y-2"}>
@@ -175,6 +176,7 @@ export default function CreateEndpointDialog({
                     onClose={() => setDialogOpen(false)}
                     onCreate={(data) => addEndpointMutation.mutate(data)}
                     workflows={data?.app.workflows || []}
+                    applicationId={applicationId}
                 />
             </AlertDialogContent>
         </AlertDialog>
