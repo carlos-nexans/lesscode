@@ -109,7 +109,7 @@ export default withPageAuthRequired(function Page(props: { params: { id: string,
                                     />
                                     <FormItem>
                                         <FormLabel>Previsualización de URL</FormLabel>
-                                        <CopyableInput type="text" value={`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps/${data?.app._id}${form.watch('pathPattern')}`} disabled />
+                                        <CopyableInput type="text" value={`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/api/deployments/apps/${data?.app._id}${form.watch('pathPattern')}`} disabled />
                                         <FormControl>
                                         </FormControl>
                                         <FormMessage/>

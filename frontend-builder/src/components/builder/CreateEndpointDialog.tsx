@@ -60,7 +60,7 @@ function CreateWorkflowDialogContent({
         onClose()
     }
 
-    let urlPrev = form.watch('pathPattern') ? `${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps/${applicationId}${form.watch('pathPattern')}` : undefined;
+    let urlPrev = form.watch('pathPattern') ? `${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/api/deployments/apps/${applicationId}${form.watch('pathPattern')}` : undefined;
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className={"space-y-2"}>

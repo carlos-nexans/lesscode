@@ -85,7 +85,7 @@ function EditAppForm({
                     <FormItem>
                         <FormLabel>URL de la app</FormLabel>
                         <FormControl>
-                            <CopyableInput type="text" value={`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/deployments/apps/${application?._id}`} disabled />
+                            <CopyableInput type="text" value={`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/api/deployments/apps/${application?._id}`} disabled />
                         </FormControl>
                         <FormMessage/>
                     </FormItem>
