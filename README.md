@@ -1,4 +1,10 @@
-# Proyecto Next.js
+# LessCode
+
+El presente proyecto se centra en el desarrollo de una plataforma de Low Code destinada a la creación de sistemas backend como APIs y CronJobs, integrando buenas prácticas de ingeniería de software, como pruebas automatizadas y gestión de versiones. Este proyecto responde a la necesidad de herramientas que permitan la rápida adaptación a los cambios del mercado y a las demandas de los usuarios, superando las limitaciones de personalización y robustez que presentan las plataformas Low Code actuales.
+
+## Video de Presentación
+
+[![Video de Presentación](https://img.youtube.com/vi/1Q6J9Q1Z9Zo/0.jpg)](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
 
 ## Descarga del Proyecto
 
