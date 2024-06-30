@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {DatabaseZap, Package, PackageOpen, PlugZap, PlusCircle, Workflow} from "lucide-react";
+import {DatabaseZap, History, Package, PackageOpen, PlugZap, PlusCircle, Workflow} from "lucide-react";
 import CreateWorkflowDialog from "@/components/builder/CreateWorkflowDialog";
 import Link from "next/link";
 import {Skeleton} from "@/components/ui/skeleton";
@@ -22,13 +22,27 @@ export function BuilderSidebar({application, applicationId, workflows, endpoints
     return (
         <div className={"flex flex-col w-64 border-r text-sm"}>
             <div className={"flex flex-col border-b "}>
-                <div className={"flex flex-row justify-between p-2 bg-accent hover:bg-primary hover:text-primary-foreground hover:cursor-pointer"} onClick={() => setEditAppDialogOpen(true)}>
+                <div
+                    className={"flex flex-row justify-between p-2 bg-accent hover:bg-primary hover:text-primary-foreground hover:cursor-pointer"}
+                    onClick={() => setEditAppDialogOpen(true)}>
                     <div className={"flex flex-row space-x-2"}>
                         <Package className={"w-4 h-4"}/>
                         <span>Información de app</span>
                     </div>
                 </div>
-                <EditAppDialog application={application} setDialogOpen={setEditAppDialogOpen} dialogOpen={editAppDialogOpen}/>
+                <EditAppDialog application={application} setDialogOpen={setEditAppDialogOpen}
+                               dialogOpen={editAppDialogOpen}/>
+            </div>
+            <div className={"flex flex-col border-b "}>
+                <Link href={`/builder/${applicationId}/changelog`}>
+                    <div
+                        className={"flex flex-row justify-between p-2 bg-accent hover:bg-primary hover:text-primary-foreground hover:cursor-pointer"}>
+                        <div className={"flex flex-row space-x-2"}>
+                            <History className={"w-4 h-4"}/>
+                            <span>Historial de cambios</span>
+                        </div>
+                    </div>
+                </Link>
             </div>
             <div className={"flex flex-col border-b "}>
                 <div className={"flex flex-row justify-between p-2 bg-accent"}>
@@ -112,7 +126,8 @@ export function BuilderSidebar({application, applicationId, workflows, endpoints
                         <DatabaseZap className={"w-5 h-5"}/>
                         <span>Bases de datos</span>
                     </div>
-                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"} onClick={() => setCreateDatabaseDialogOpen(true)}/>
+                    <PlusCircle className={"w-5 h-5 hover:cursor-pointer"}
+                                onClick={() => setCreateDatabaseDialogOpen(true)}/>
                 </div>
                 <CreateDatabaseDialog
                     dialogOpen={createDatabaseDialogOpen}
