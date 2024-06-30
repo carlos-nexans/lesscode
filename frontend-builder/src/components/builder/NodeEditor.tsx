@@ -117,7 +117,7 @@ export function NodeEditor({node, onClose, onSaveNode}) {
     const [code, setCode] = useState(node.data.func);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [touched, setTouched] = useState(false);
-    const [chatOpen, setChatOpen] = useState(true);
+    const [chatOpen, setChatOpen] = useState(false);
 
     const onClickClose = () => {
         if (touched) {
