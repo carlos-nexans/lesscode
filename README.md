@@ -1,7 +1,4 @@
-```markdown
 # Proyecto Next.js
-
-Este es un proyecto de Next.js inicializado con create-next-app.
 
 ## Descarga del Proyecto
 
@@ -94,3 +91,9 @@ Para aprender más sobre Next.js, consulta los siguientes recursos:
 - [Aprende Next.js](https://nextjs.org/learn) - Un tutorial interactivo de Next.js.
 
 También puedes revisar el [repositorio de Next.js en GitHub](https://github.com/vercel/next.js) - ¡Tus comentarios y contribuciones son bienvenidos!
+
+## Librerías
+
+Este proyecto utililiza una librería custom para ejecutar flujos de trabajo. Se puede encontrar el código fuente en este enlace
+
+- [Librería de Flujos de Trabajo](https://github.com/cdgn-coding/workflow-lib)
