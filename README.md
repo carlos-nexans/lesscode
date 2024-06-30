@@ -4,6 +4,8 @@ El presente proyecto se centra en el desarrollo de una plataforma de Low Code de
 
 ## Video de Presentación
 
+Haz click en la miniatura del video para ver la demostración del prototipo.
+
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/AZAHAQgZqxM/0.jpg)](https://www.youtube.com/watch?v=AZAHAQgZqxM)
 
 ## Descarga del Proyecto
