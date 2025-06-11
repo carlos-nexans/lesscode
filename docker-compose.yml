@@ -1,15 +1,27 @@
 version: '3.8'
 services:
-  db:
-    image: mongo:latest
+  # db:
+  #   image: mongo:latest
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: rootpassword
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongodb_data:/data/db
+  postgres:
+    image: postgres:13
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lesscode
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
   mongodb_data:
+  postgres_data:

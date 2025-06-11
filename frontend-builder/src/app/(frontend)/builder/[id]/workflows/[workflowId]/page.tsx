@@ -345,7 +345,13 @@ export default withPageAuthRequired(function Page(props: { params: { id: string,
     return (
         <>
             <div className={cn("block absolute h-full w-full bg-white", isOpenEditor ? "z-50" : "-z-50")}>
-                {editingNode && <NodeEditor onSaveNode={onSaveNode} node={editingNode} onClose={onEditorClose}/>}
+                {editingNode && <NodeEditor 
+                    onSaveNode={onSaveNode} 
+                    node={editingNode} 
+                    onClose={onEditorClose}
+                    appId={props.params.id}
+                    workflowId={props.params.workflowId}
+                />}
             </div>
             <div className={"p-4"}>
                 <div className="flex flex-row justify-between">
