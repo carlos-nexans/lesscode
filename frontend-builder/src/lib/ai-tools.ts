@@ -63,7 +63,7 @@ export class AITools {
       });
     });
 
-    this.onWorkflowUpdate(updates);
+    // Don't automatically call onWorkflowUpdate here - let the caller decide
     return updates[0]; // Return the main node removal update
   }
 
@@ -284,7 +284,10 @@ export class AITools {
 
   // Batch operations
   executeBatchUpdates(updates: WorkflowUpdate[]): void {
-    this.onWorkflowUpdate(updates);
+    // Only call onWorkflowUpdate if it's provided and updates exist
+    if (this.onWorkflowUpdate && updates.length > 0) {
+      this.onWorkflowUpdate(updates);
+    }
   }
 
   // Get current workflow state

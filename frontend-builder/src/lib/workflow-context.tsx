@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, ReactNode, useMemo } from 'react';
 import { Node, Edge } from 'reactflow';
 import { 
   WorkflowContext as WorkflowContextType, 
@@ -293,7 +293,10 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'APPLY_WORKFLOW_UPDATES', payload: updates });
   }, []);
 
-  const aiTools = new AITools(state.nodes, state.edges, applyWorkflowUpdates);
+  // Memoize aiTools to prevent infinite re-renders
+  const aiTools = useMemo(() => {
+    return new AITools(state.nodes, state.edges, applyWorkflowUpdates);
+  }, [state.nodes, state.edges, applyWorkflowUpdates]);
 
   const sendMessage = useCallback(async (content: string) => {
     const userMessage: ChatMessage = {
@@ -394,7 +397,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     }
   }, [state.chatState.messages, sendMessage]);
 
-  const actions = {
+  // Memoize actions to prevent unnecessary re-renders
+  const actions = useMemo(() => ({
     setNodes: (nodes: Node[]) => dispatch({ type: 'SET_NODES', payload: nodes }),
     setEdges: (edges: Edge[]) => dispatch({ type: 'SET_EDGES', payload: edges }),
     setApplication: (application: Application) => dispatch({ type: 'SET_APPLICATION', payload: application }),
@@ -408,13 +412,14 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     redo: () => dispatch({ type: 'REDO' }),
     sendMessage,
     retryMessage
-  };
+  }), [applyWorkflowUpdates, sendMessage, retryMessage]);
 
-  const value: WorkflowContextValue = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     state,
     actions,
     aiTools
-  };
+  }), [state, actions, aiTools]);
 
   return (
     <WorkflowContext.Provider value={value}>

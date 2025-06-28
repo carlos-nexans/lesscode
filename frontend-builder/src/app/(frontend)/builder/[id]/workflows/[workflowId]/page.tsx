@@ -210,7 +210,7 @@ function WorkflowPageContent(props: { params: { id: string, workflowId: string }
         queryFn: () => getWorkflowDefinition(props.params.workflowId)
     })
 
-    // Initialize workflow context when data is loaded
+    // Initialize workflow context when data is loaded (only once)
     useEffect(() => {
         if (applicationData?.app) {
             const app: Application = {
@@ -223,12 +223,6 @@ function WorkflowPageContent(props: { params: { id: string, workflowId: string }
             actions.setApplication(app);
         }
     }, [applicationData, actions]);
-
-    // Update workflow context when nodes/edges change
-    useEffect(() => {
-        actions.setNodes(nodes);
-        actions.setEdges(edges);
-    }, [nodes, edges, actions]);
 
     const saveWorkflowMutation = useMutation({
         mutationFn: data => saveWorkflowDefinition(props.params.workflowId, data),
