@@ -16,8 +16,9 @@ import ReactFlow, {
     useReactFlow,
     useStore
 } from 'reactflow';
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {BackgroundVariant} from "@reactflow/background/dist/esm/types";
-import {FileCode2, PlusCircle, Trash2, Unlink, MessageCircle} from "lucide-react";
+import {FileCode2, PlusCircle, Trash2, Unlink, MessageCircle, PanelLeftClose, PanelLeftOpen} from "lucide-react";
 import ContentTop from "@/components/ContentTop";
 import {Card, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -178,7 +179,7 @@ const nodeTypes = {
 
 export default withPageAuthRequired(function Page(props: { params: { id: string, workflowId: string } }) {
     return (
-        <WorkflowProvider>
+        <WorkflowProvider workflowId={props.params.workflowId}>
             <WorkflowPageContent params={props.params} />
         </WorkflowProvider>
     );
@@ -224,11 +225,22 @@ function WorkflowPageContent(props: { params: { id: string, workflowId: string }
         }
     }, [applicationData, actions]);
 
+    // Sync local React Flow state with global workflow state
+    useEffect(() => {
+        actions.setNodes(nodes);
+    }, [nodes, actions]);
+
+    useEffect(() => {
+        actions.setEdges(edges);
+    }, [edges, actions]);
+
     const saveWorkflowMutation = useMutation({
         mutationFn: data => saveWorkflowDefinition(props.params.workflowId, data),
         onSuccess: () => {
             toast("Flujo guardado correctamente.")
+            // Invalidate both workflow and application queries
             queryClient.invalidateQueries({queryKey: [`workflow-${props.params.workflowId}`]})
+            queryClient.invalidateQueries({queryKey: [`app-${props.params.id}`]})
         },
         onError: (error) => {
             toast.message(error.message)
@@ -387,12 +399,16 @@ function WorkflowPageContent(props: { params: { id: string, workflowId: string }
                     <ContentTop routes={routes} isLoading={isLoading}/>
                     <div className={"flex flex-row space-x-2"}>
                         <Button 
-                            variant="outline" 
+                            variant="secondary" 
                             onClick={() => setIsChatOpen(!isChatOpen)}
                             className="flex items-center gap-2"
                         >
-                            <MessageCircle className="h-4 w-4" />
-                            AI Assistant
+                            {isChatOpen ? (
+                                <PanelLeftOpen className="h-4 w-4" />
+                            ) : (
+                                <PanelLeftClose className="h-4 w-4" />
+                            )}
+                            {isChatOpen ? "Cerrar asistente" : "Abrir asistente"}
                         </Button>
                         <Button variant="default" onClick={() => saveWorkflow()}>Guardar</Button>
                         <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar
@@ -400,38 +416,64 @@ function WorkflowPageContent(props: { params: { id: string, workflowId: string }
                     </div>
                 </div>
             </div>
-            <div className={"h-full flex-1 flex-grow relative"}>
-                <div className={"h-full w-full relative bg-white"} ref={reactFlowWrapper}>
-                    <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnect={onConnect}
-                        isValidConnection={isValidConnection}
-                        fitView
-                        panOnScroll
-                        nodeTypes={nodeTypes}
-                        onPaneClick={onPaneClick}
-                        onEdgeContextMenu={onEdgeContextMenu}
-                        onNodeContextMenu={onNodeContextMenu}
-                        ref={ref}
+            <div className={"h-full flex-1 flex-grow relative overflow-hidden"}>
+                <PanelGroup
+                    direction="horizontal"
+                    className="flex flex-1 h-full"
+                    dir="ltr"
+                >
+                    <Panel
+                        defaultSize={isChatOpen ? 30 : 0}
+                        minSize={20}
+                        maxSize={isChatOpen ? 50 : 0}
+                        className="flex flex-col h-full border-r"
                     >
-                        <Controls/>
-                        <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
-                        {edgeMenu && <EdgeContextMenu setNodes={setNodes}
-                                                      setEdges={setEdges} getEdges={getEdges} onClick={closeContextMenu} {...edgeMenu} />}
-                        {nodeMenu && <NodeContextMenu setNodes={setNodes}
-                                                      setEdges={setEdges} onClick={closeContextMenu} {...nodeMenu} />}
-                    </ReactFlow>
-                </div>
+                        {isChatOpen && (
+                            <GlobalChatSidebar 
+                                isOpen={isChatOpen} 
+                                onToggle={() => setIsChatOpen(!isChatOpen)}
+                                setNodes={setNodes}
+                                setEdges={setEdges}
+                            />
+                        )}
+                    </Panel>
+                    
+                    {isChatOpen && (
+                        <PanelResizeHandle className="w-2 bg-gray-200 hover:bg-gray-300 cursor-col-resize" />
+                    )}
+                    
+                    <Panel
+                        defaultSize={isChatOpen ? 70 : 100}
+                        minSize={50}
+                        className="flex-1 flex-grow overflow-hidden"
+                    >
+                        <div className={"h-full w-full relative bg-white"} ref={reactFlowWrapper}>
+                            <ReactFlow
+                                nodes={nodes}
+                                edges={edges}
+                                onNodesChange={onNodesChange}
+                                onEdgesChange={onEdgesChange}
+                                onConnect={onConnect}
+                                isValidConnection={isValidConnection}
+                                fitView
+                                panOnScroll
+                                nodeTypes={nodeTypes}
+                                onPaneClick={onPaneClick}
+                                onEdgeContextMenu={onEdgeContextMenu}
+                                onNodeContextMenu={onNodeContextMenu}
+                                ref={ref}
+                            >
+                                <Controls/>
+                                <Background color="#ccc" variant={"dots" as BackgroundVariant}/>
+                                {edgeMenu && <EdgeContextMenu setNodes={setNodes}
+                                                              setEdges={setEdges} getEdges={getEdges} onClick={closeContextMenu} {...edgeMenu} />}
+                                {nodeMenu && <NodeContextMenu setNodes={setNodes}
+                                                              setEdges={setEdges} onClick={closeContextMenu} {...nodeMenu} />}
+                            </ReactFlow>
+                        </div>
+                    </Panel>
+                </PanelGroup>
             </div>
-            
-            {/* Global Chat Sidebar */}
-            <GlobalChatSidebar 
-                isOpen={isChatOpen} 
-                onToggle={() => setIsChatOpen(!isChatOpen)} 
-            />
         </>
     );
 }

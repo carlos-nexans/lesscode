@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, ReactNode, useMemo } from 'react';
 import { Node, Edge } from 'reactflow';
 import { 
   WorkflowContext as WorkflowContextType, 
@@ -16,6 +16,7 @@ interface WorkflowState {
   nodes: Node[];
   edges: Edge[];
   application: Application | null;
+  workflowId: string | null;
   selectedNodeId: string | null;
   chatState: ChatState;
   history: WorkflowUpdate[][];
@@ -28,6 +29,7 @@ type WorkflowAction =
   | { type: 'SET_NODES'; payload: Node[] }
   | { type: 'SET_EDGES'; payload: Edge[] }
   | { type: 'SET_APPLICATION'; payload: Application }
+  | { type: 'SET_WORKFLOW_ID'; payload: string | null }
   | { type: 'SET_SELECTED_NODE'; payload: string | null }
   | { type: 'APPLY_WORKFLOW_UPDATES'; payload: WorkflowUpdate[] }
   | { type: 'ADD_CHAT_MESSAGE'; payload: ChatMessage }
@@ -41,6 +43,7 @@ const initialState: WorkflowState = {
   nodes: [],
   edges: [],
   application: null,
+  workflowId: null,
   selectedNodeId: null,
   chatState: {
     messages: [],
@@ -65,6 +68,9 @@ function workflowReducer(state: WorkflowState, action: WorkflowAction): Workflow
     
     case 'SET_APPLICATION':
       return { ...state, application: action.payload };
+    
+    case 'SET_WORKFLOW_ID':
+      return { ...state, workflowId: action.payload };
     
     case 'SET_SELECTED_NODE':
       return { 
@@ -270,6 +276,7 @@ interface WorkflowContextValue {
     setNodes: (nodes: Node[]) => void;
     setEdges: (edges: Edge[]) => void;
     setApplication: (application: Application) => void;
+    setWorkflowId: (workflowId: string | null) => void;
     setSelectedNode: (nodeId: string | null) => void;
     applyWorkflowUpdates: (updates: WorkflowUpdate[]) => void;
     addChatMessage: (message: ChatMessage) => void;
@@ -286,8 +293,15 @@ interface WorkflowContextValue {
 
 const WorkflowContext = createContext<WorkflowContextValue | undefined>(undefined);
 
-export function WorkflowProvider({ children }: { children: ReactNode }) {
+export function WorkflowProvider({ children, workflowId }: { children: ReactNode; workflowId?: string }) {
   const [state, dispatch] = useReducer(workflowReducer, initialState);
+
+  // Set workflowId when provider is initialized
+  useEffect(() => {
+    if (workflowId) {
+      dispatch({ type: 'SET_WORKFLOW_ID', payload: workflowId });
+    }
+  }, [workflowId]);
 
   const applyWorkflowUpdates = useCallback((updates: WorkflowUpdate[]) => {
     dispatch({ type: 'APPLY_WORKFLOW_UPDATES', payload: updates });
@@ -323,7 +337,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           messages: [{ role: 'user', content }],
           appId: state.application?.id,
-          workflowId: 'current', // This should be the actual workflow ID
+          workflowId: state.workflowId, // Use the workflowId from state
           selectedNodeId: state.selectedNodeId,
           workflowContext
         })
@@ -378,17 +392,18 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
                 dispatch({ type: 'ADD_CHAT_MESSAGE', payload: { ...assistantMessage } });
               }
             } catch (e) {
-              // Ignore parsing errors for incomplete chunks
+              console.error('Error parsing streaming data:', e);
             }
           }
         }
       }
     } catch (error) {
+      console.error('Error sending message:', error);
       dispatch({ type: 'SET_CHAT_ERROR', payload: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       dispatch({ type: 'SET_CHAT_LOADING', payload: false });
     }
-  }, [state.nodes, state.edges, state.application, state.selectedNodeId]);
+  }, [workflowId, state.application?.id, state.selectedNodeId, state.nodes, state.edges]);
 
   const retryMessage = useCallback(async (messageId: string) => {
     const message = state.chatState.messages.find(msg => msg.id === messageId);
@@ -402,6 +417,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     setNodes: (nodes: Node[]) => dispatch({ type: 'SET_NODES', payload: nodes }),
     setEdges: (edges: Edge[]) => dispatch({ type: 'SET_EDGES', payload: edges }),
     setApplication: (application: Application) => dispatch({ type: 'SET_APPLICATION', payload: application }),
+    setWorkflowId: (workflowId: string | null) => dispatch({ type: 'SET_WORKFLOW_ID', payload: workflowId }),
     setSelectedNode: (nodeId: string | null) => dispatch({ type: 'SET_SELECTED_NODE', payload: nodeId }),
     applyWorkflowUpdates,
     addChatMessage: (message: ChatMessage) => dispatch({ type: 'ADD_CHAT_MESSAGE', payload: message }),

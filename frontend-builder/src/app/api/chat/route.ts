@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
         }
       } catch (error) {
         console.error('Error al obtener el workflow:', error);
+        // Don't throw error, just continue without workflow definition
       }
     }
     
@@ -90,7 +91,22 @@ Información sobre el contexto de ejecución:\n- Tu código se ejecutará como u
   * context.response: Objeto para configurar la respuesta
   * Cualquier dato pasado por nodos anteriores en el workflow
 
-Puedes ayudar al usuario a entender, modificar o mejorar este código, así como modificar la estructura completa del workflow. Si el usuario solicita cambios en el código, puedes usar la herramienta 'modify_node'. Si solicita cambios en la estructura del workflow, puedes usar las herramientas de gestión de workflow.
+Puedes ayudar al usuario a entender, modificar o mejorar este código, así como modificar la estructura completa del workflow. 
+
+**IMPORTANTE sobre conexiones:**
+- Cuando agregues nodos nuevos, SIEMPRE considera si deberían conectarse a nodos existentes
+- Los workflows generalmente siguen un flujo lógico: entrada → procesamiento → salida
+- Si hay nodos sin conexiones, sugiere o agrega conexiones apropiadas automáticamente
+- Cuando modifiques la estructura, mantén la lógica del flujo
+
+**Herramientas disponibles:**
+- 'add_node': Agrega un nuevo nodo (se auto-conecta al último nodo si existe)
+- 'remove_node': Elimina un nodo y sus conexiones
+- 'modify_node_properties': Modifica propiedades de un nodo
+- 'add_connection': Conecta dos nodos específicos
+- 'remove_connection': Elimina una conexión específica
+- 'auto_layout': Reorganiza automáticamente todos los nodos
+- 'create_workflow_sequence': Crea una secuencia de nodos conectados
 
 Das respuestas cortas y concisas.
 `;
@@ -236,6 +252,49 @@ Das respuestas cortas y concisas.
             // Esta función no se ejecuta en el servidor, solo se usa para definir la herramienta
             // La ejecución real se maneja en el cliente
             return { success: true, optimization: 'pending' };
+          }
+        }),
+        
+        auto_layout: tool({
+          description: 'Reorganiza automáticamente todos los nodos del workflow usando un layout optimizado',
+          parameters: z.object({}),
+          execute: async () => {
+            // Esta función no se ejecuta en el servidor, solo se usa para definir la herramienta
+            // La ejecución real se maneja en el cliente
+            return { success: true, layout: 'applied' };
+          }
+        }),
+        
+        create_workflow_sequence: tool({
+          description: 'Crea una secuencia de nodos conectados para un flujo específico. La secuencia se conectará automáticamente a nodos existentes.',
+          parameters: z.object({
+            sequence: z.array(z.object({
+              name: z.string().describe('Nombre del nodo'),
+              type: z.string().optional().describe('Tipo de nodo (FunctionNode por defecto)'),
+              code: z.string().optional().describe('Código del nodo')
+            })).describe('Secuencia de nodos a crear y conectar'),
+            replaceExisting: z.boolean().optional().describe('Si true, reemplaza todos los nodos existentes. Si false, se conecta a los existentes.')
+          }),
+          execute: async ({ sequence, replaceExisting }) => {
+            // Esta función no se ejecuta en el servidor, solo se usa para definir la herramienta
+            // La ejecución real se maneja en el cliente
+            return { success: true, sequence, replaceExisting };
+          }
+        }),
+        
+        replace_workflow: tool({
+          description: 'Reemplaza completamente el workflow actual con una nueva secuencia de nodos',
+          parameters: z.object({
+            sequence: z.array(z.object({
+              name: z.string().describe('Nombre del nodo'),
+              type: z.string().optional().describe('Tipo de nodo (FunctionNode por defecto)'),
+              code: z.string().optional().describe('Código del nodo')
+            })).describe('Nueva secuencia completa del workflow')
+          }),
+          execute: async ({ sequence }) => {
+            // Esta función no se ejecuta en el servidor, solo se usa para definir la herramienta
+            // La ejecución real se maneja en el cliente
+            return { success: true, sequence, replace: true };
           }
         })
       },
