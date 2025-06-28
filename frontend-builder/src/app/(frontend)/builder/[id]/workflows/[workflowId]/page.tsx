@@ -17,7 +17,7 @@ import ReactFlow, {
     useStore
 } from 'reactflow';
 import {BackgroundVariant} from "@reactflow/background/dist/esm/types";
-import {FileCode2, PlusCircle, Trash2, Unlink} from "lucide-react";
+import {FileCode2, PlusCircle, Trash2, Unlink, MessageCircle} from "lucide-react";
 import ContentTop from "@/components/ContentTop";
 import {Card, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
@@ -38,6 +38,9 @@ import {toast} from "sonner";
 import {queryClient} from "@/config/tanstack";
 import {generateId} from "@/lib/id";
 import {withPageAuthRequired} from "@auth0/nextjs-auth0/client";
+import {WorkflowProvider, useWorkflow} from "@/lib/workflow-context";
+import {GlobalChatSidebar} from "@/components/builder/GlobalChatSidebar";
+import {Application} from "@/types/workflow";
 
 
 export type FunctionNodeProps = {
@@ -174,6 +177,16 @@ const nodeTypes = {
 }
 
 export default withPageAuthRequired(function Page(props: { params: { id: string, workflowId: string } }) {
+    return (
+        <WorkflowProvider>
+            <WorkflowPageContent params={props.params} />
+        </WorkflowProvider>
+    );
+}, {
+    returnTo: '/apps',
+})
+
+function WorkflowPageContent(props: { params: { id: string, workflowId: string } }) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const {getNodes, getEdges} = useReactFlow();
@@ -182,6 +195,8 @@ export default withPageAuthRequired(function Page(props: { params: { id: string,
     const [nodeMenu, setNodeMenu] = useState(null);
     const {editingNode, setEditingNode} = useEditingNode();
     const ref = useRef(null);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const { actions } = useWorkflow();
 
     const {data: applicationData, isLoading} = useQuery({
         queryKey: [`app-${props.params.id}`],
@@ -194,6 +209,26 @@ export default withPageAuthRequired(function Page(props: { params: { id: string,
         queryKey: [`workflow-${props.params.workflowId}`],
         queryFn: () => getWorkflowDefinition(props.params.workflowId)
     })
+
+    // Initialize workflow context when data is loaded
+    useEffect(() => {
+        if (applicationData?.app) {
+            const app: Application = {
+                id: applicationData.app._id,
+                name: applicationData.app.name,
+                databases: applicationData.app.databases || [],
+                endpoints: applicationData.app.endpoints || [],
+                workflows: applicationData.app.workflows || []
+            };
+            actions.setApplication(app);
+        }
+    }, [applicationData, actions]);
+
+    // Update workflow context when nodes/edges change
+    useEffect(() => {
+        actions.setNodes(nodes);
+        actions.setEdges(edges);
+    }, [nodes, edges, actions]);
 
     const saveWorkflowMutation = useMutation({
         mutationFn: data => saveWorkflowDefinition(props.params.workflowId, data),
@@ -357,6 +392,14 @@ export default withPageAuthRequired(function Page(props: { params: { id: string,
                 <div className="flex flex-row justify-between">
                     <ContentTop routes={routes} isLoading={isLoading}/>
                     <div className={"flex flex-row space-x-2"}>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => setIsChatOpen(!isChatOpen)}
+                            className="flex items-center gap-2"
+                        >
+                            <MessageCircle className="h-4 w-4" />
+                            AI Assistant
+                        </Button>
                         <Button variant="default" onClick={() => saveWorkflow()}>Guardar</Button>
                         <Button onClick={addNode} variant="default"><PlusCircle className={"w-5 h-5 mr-2"}/> Agregar
                             nodo</Button>
@@ -389,8 +432,12 @@ export default withPageAuthRequired(function Page(props: { params: { id: string,
                     </ReactFlow>
                 </div>
             </div>
+            
+            {/* Global Chat Sidebar */}
+            <GlobalChatSidebar 
+                isOpen={isChatOpen} 
+                onToggle={() => setIsChatOpen(!isChatOpen)} 
+            />
         </>
     );
-}, {
-    returnTo: '/apps',
-})
+}
